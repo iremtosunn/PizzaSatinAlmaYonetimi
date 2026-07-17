@@ -1,0 +1,11 @@
+@model KullaniciFormModel
+@{ var duzenleme=(bool)(ViewData["Duzenleme"]??false); }
+<div class="panel-icerik">
+@if(duzenleme){<label>Kullanıcı ID<input name="KullaniciId" value="@Model.KullaniciId" readonly/></label>}
+<label>Ad Soyad<input name="AdSoyad" value="@Model.AdSoyad" maxlength="100" required placeholder="Ad soyad giriniz"/></label>
+<label>Kullanıcı Adı<input name="KullaniciAdi" value="@Model.KullaniciAdi" maxlength="50" required placeholder="Kullanıcı adı giriniz"/></label>
+<label>E-posta<input name="Eposta" value="@Model.Eposta" type="email" maxlength="254" required placeholder="E-posta adresi giriniz"/></label>
+<label>Rol<select name="RolAdi" required><option value="">Rol seçiniz</option>@foreach(var r in (IReadOnlyList<RolSecenegi>)ViewData["Roller"]!){<option value="@r.RolAdi" selected="@(r.RolAdi==Model.RolAdi)">@r.RolAdi</option>}</select></label>
+<label>Geçici Şifre <small>@(duzenleme?"İsteğe bağlı":"")</small><input name="GeciciSifre" type="password" minlength="8" required="@(!duzenleme)" autocomplete="new-password"/></label>
+<label>Geçici Şifre Tekrar <small>@(duzenleme?"İsteğe bağlı":"")</small><input name="GeciciSifreTekrar" type="password" minlength="8" required="@(!duzenleme)" autocomplete="new-password"/></label>
+</div>
