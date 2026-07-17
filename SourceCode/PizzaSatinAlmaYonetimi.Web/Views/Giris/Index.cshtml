@@ -1,3 +1,73 @@
-@{ Layout = null; ViewData["Title"] = "Giriş Yap"; }
-<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Giriş Yap - Satın Alma</title><link rel="stylesheet" href="~/css/site.css"/></head>
-<body class="login-page"><section class="login-intro"><div class="brand login-brand"><span class="brand-mark">▣</span><span>Satın Alma</span></div><div><h1>Satın Alma Yönetim Sistemi</h1><p>Satın alma süreçlerinizi güvenli ve kolay bir şekilde yönetin.</p></div></section><main class="login-panel"><form class="login-card" onsubmit="return false"><h2>Giriş Yap</h2><p>Hesabınıza giriş yapın.</p><label for="username">Kullanıcı Adı</label><input id="username" autocomplete="username" placeholder="Kullanıcı adınızı girin"/><label for="password">Şifre</label><input id="password" type="password" autocomplete="current-password" placeholder="Şifrenizi girin"/><button type="submit">Giriş Yap</button><small>Pizza Fabrikası Satın Alma Yönetim Modülü</small></form></main></body></html>
+@model GirisViewModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Giriş Yap - Satın Alma</title>
+    <link rel="stylesheet" href="~/css/giris.css" asp-append-version="true" />
+</head>
+<body>
+    <section class="tanitim" aria-label="Satın Alma Yönetim Sistemi tanıtımı">
+        <div class="marka">
+            <span class="marka-amblem" aria-hidden="true">
+                <svg viewBox="0 0 64 64" role="img"><path d="M28 8h8v17h8v7H20v-7h8V8Z"/><path d="m18 34 14-7 14 7v17l-14 7-14-7V34Zm5 4v10l7 4V42l-7-4Zm11 14 7-4V38l-7 4v10Zm-9-17 7 4 7-4-7-3-7 3Z"/></svg>
+            </span>
+            <span>Satın Alma</span>
+        </div>
+
+        <div class="tanitim-metni">
+            <h1>Satın Alma Yönetim Sistemi</h1>
+            <p>Satın alma süreçlerinizi güvenli ve kolay bir şekilde yönetin.</p>
+        </div>
+
+        <svg class="tanitim-cizimi" viewBox="0 0 620 360" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="70" y="86" width="180" height="220" rx="10"/><rect x="118" y="62" width="86" height="46" rx="10"/>
+                <path d="M136 84v-8a25 25 0 0 1 50 0v8M105 145l12 12 23-27M105 190l12 12 23-27M105 235l12 12 23-27M154 145h64M154 190h64M154 235h64"/>
+                <path d="m215 224 28 98h105l30-70H235m16 88h3m76 0h3"/><circle cx="253" cy="340" r="8"/><circle cx="332" cy="340" r="8"/>
+                <path d="M350 168h115v100H350zM350 168l57 27 58-27M407 195v73M390 168v27l17-8 17 8v-27"/>
+                <circle cx="475" cy="265" r="55"/><circle cx="475" cy="265" r="29"/><path d="m475 194 9 18 20-5 4 20 20 5-6 20 16 13-16 13 6 20-20 5-4 20-20-5-9 18-9-18-20 5-4-20-20-5 6-20-16-13 16-13-6-20 20-5 4-20 20 5 9-18Z"/>
+            </g>
+        </svg>
+    </section>
+
+    <main class="giris-alani">
+        <form class="giris-karti" asp-controller="Giris" asp-action="Index" method="post" novalidate>
+            <div class="baslik">
+                <h2>Giriş Yap</h2>
+                <p>Hesabınıza giriş yapın.</p>
+            </div>
+
+            <div asp-validation-summary="ModelOnly" class="hata-ozeti" role="alert"></div>
+
+            <div class="form-alani">
+                <label asp-for="KullaniciAdi"></label>
+                <div class="girdi-kutusu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    <input asp-for="KullaniciAdi" autocomplete="username" placeholder="Kullanıcı adınızı girin" autofocus />
+                </div>
+                <span asp-validation-for="KullaniciAdi" class="alan-hatasi"></span>
+            </div>
+
+            <div class="form-alani">
+                <label asp-for="Sifre"></label>
+                <div class="girdi-kutusu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                    <input asp-for="Sifre" autocomplete="current-password" placeholder="Şifrenizi girin" />
+                    <button class="sifre-goster" type="button" aria-label="Şifreyi göster" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <span asp-validation-for="Sifre" class="alan-hatasi"></span>
+            </div>
+
+            <button class="giris-dugmesi" type="submit">Giriş Yap</button>
+            <p class="alt-metin">Pizza Fabrikası Satın Alma Yönetim Modülü</p>
+        </form>
+    </main>
+
+    <script src="~/js/giris.js" asp-append-version="true"></script>
+</body>
+</html>
