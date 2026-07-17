@@ -14,6 +14,7 @@ builder.Services.AddScoped<IKullaniciYonetimiService, KullaniciYonetimiService>(
 builder.Services.AddScoped<IRolYonetimiService, RolYonetimiService>();
 builder.Services.AddScoped<ITedarikciYonetimiService, TedarikciYonetimiService>();
 builder.Services.AddScoped<ISatinAlmaTalebiService, SatinAlmaTalebiService>();
+builder.Services.AddScoped<ITeklifGirisiService, TeklifGirisiService>();
 builder.Services.AddSingleton<ISifreDogrulamaService, SifreDogrulamaService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
