@@ -1,2 +1,6 @@
-@model PageViewModel
-<partial name="Module" model="Model" />
+@model IReadOnlyList<OnayBekleyenTeklif>
+@{ViewData["Title"]="Satın Alma Onayı";}
+<link rel="stylesheet" href="~/css/yonetim.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/karsilastirma-onay.css" asp-append-version="true"/>
+@if(TempData["Basari"] is string basari){<div class="bildiri basari">@basari</div>}@if(TempData["Hata"] is string hata){<div class="bildiri hata">@hata</div>}
+<article class="onay-ozet"><span>◷</span><div><small>Onay Bekleyen Teklifler</small><strong>@Model.Count</strong></div></article>
+<section class="tablo-karti onay-tablosu"><h2>Onay Bekleyen Teklifler</h2><div class="tablo-sarma"><table><thead><tr><th>Teklif No</th><th>Talep No</th><th>Ürün Adı</th><th>Talep Eden</th><th>Firma Adı</th><th>Teklif Tutarı</th><th>Para Birimi</th><th>Teslim Süresi</th><th>Teklif Tarihi</th><th>Geçerlilik Tarihi</th><th>İşlem</th></tr></thead><tbody>@foreach(var t in Model){<tr><td>@t.TeklifNo</td><td>@t.TalepNo</td><td>@t.UrunAdi</td><td>@t.TalepEden</td><td>@t.FirmaAdi</td><td>@t.TeklifTutari.ToString("N2")</td><td>@t.ParaBirimi</td><td>@t.TeslimSuresiGun gün</td><td>@t.TeklifTarihi.ToString("dd.MM.yyyy")</td><td>@(t.GecerlilikTarihi?.ToString("dd.MM.yyyy")??"—")</td><td><form asp-action="SiparisOlustur" method="post" onsubmit="return confirm('Seçilen teklif üzerinden sipariş oluşturulsun mu?');"><input type="hidden" name="teklifId" value="@t.TeklifId"/><button class="siparis">Sipariş Oluştur</button></form></td></tr>}@if(Model.Count==0){<tr><td colspan="11" class="bos">Onay bekleyen teklif bulunmuyor.</td></tr>}</tbody></table></div><p class="onay-notu">Sipariş oluşturulduğunda durum Oluşturuldu olarak kaydedilir.</p></section>

@@ -1,0 +1,8 @@
+using System.Data;using Microsoft.Data.SqlClient;using PizzaSatinAlmaYonetimi.Web.Data;using PizzaSatinAlmaYonetimi.Web.Models;
+namespace PizzaSatinAlmaYonetimi.Web.Services;
+public sealed class TeklifKarsilastirmaService(ISqlConnectionFactory factory):ITeklifKarsilastirmaService
+{
+ public async Task<IReadOnlyList<KarsilastirmaTeklifi>>ListeleAsync(string no,CancellationToken ct){await using var c=factory.CreateConnection();await c.OpenAsync(ct);await using var cmd=Komut(c,"dbo.sp_TalebeAitTeklifleriListele");P(cmd,"@TalepNo",no);await using var r=await cmd.ExecuteReaderAsync(ct);var l=new List<KarsilastirmaTeklifi>();while(await r.ReadAsync(ct))l.Add(new(r.GetString("TeklifNo"),r.GetString("TalepNo"),r.GetString("UrunAdi"),r.GetString("TalepEden"),r.GetString("FirmaAdi"),r.GetDecimal(r.GetOrdinal("TeklifTutari")),r.GetString("ParaBirimi"),r.GetInt32("TeslimSuresiGun"),r.IsDBNull("SKT")?null:r.GetDateTime("SKT"),r.IsDBNull("GecerlilikTarihi")?null:r.GetDateTime("GecerlilikTarihi"),r.GetString("Durum")=="İnceleniyor"?"Girildi":r.GetString("Durum")));return l;}
+ public Task SecAsync(string no,CancellationToken ct)=>Calistir("dbo.sp_TeklifSec",no,ct);public Task ReddetAsync(string no,CancellationToken ct)=>Calistir("dbo.sp_TeklifiReddet",no,ct);
+ private async Task Calistir(string ad,string no,CancellationToken ct){await using var c=factory.CreateConnection();await c.OpenAsync(ct);await using var cmd=Komut(c,ad);P(cmd,"@TeklifNo",no);await cmd.ExecuteNonQueryAsync(ct);}private static SqlCommand Komut(SqlConnection c,string a)=>new(a,c){CommandType=CommandType.StoredProcedure};private static void P(SqlCommand c,string a,string d)=>c.Parameters.Add(a,SqlDbType.NVarChar,20).Value=d;
+}
