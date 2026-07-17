@@ -1,3 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;using Microsoft.AspNetCore.Authorization;using Microsoft.AspNetCore.Mvc;using PizzaSatinAlmaYonetimi.Web.Models;using PizzaSatinAlmaYonetimi.Web.Services;
 namespace PizzaSatinAlmaYonetimi.Web.Controllers;
-public sealed class SatinAlmaTalepleriController : ModuleControllerBase { public IActionResult Index() => View(Page("Satın Alma Talepleri")); }
+[Authorize(Roles="Satın Alma Yöneticisi,Satın Alma Uzmanı,Talep Oluşturan Kullanıcı")]
+public sealed class SatinAlmaTalepleriController(ISatinAlmaTalebiService service,ILogger<SatinAlmaTalepleriController> logger):Controller
+{
+ [HttpGet]public async Task<IActionResult>Index([FromQuery]TalepFiltreModel filtre,string? panel,string? duzenleNo,CancellationToken ct){var talepOlusturan=User.IsInRole("Talep Oluşturan Kullanıcı");if(talepOlusturan)filtre.TalepEden=User.Identity!.Name;var form=!string.IsNullOrWhiteSpace(duzenleNo)?await service.DetayGetirAsync(duzenleNo,ct)??new():new TalepFormModel();if(talepOlusturan&&form.TalepId.HasValue&&form.TalepEden!=User.Identity!.Name)return Forbid();return View(new SatinAlmaTalepleriViewModel{Talepler=await service.ListeleAsync(filtre,ct),Filtre=filtre,Form=form,AcikPanel=panel});}
+ [HttpPost][ValidateAntiForgeryToken]public async Task<IActionResult>Ekle(TalepFormModel form,CancellationToken ct){if(!ModelState.IsValid)return await Hatali(form,"ekle",ct);var id=int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);return await Islem(()=>service.EkleAsync(id,form,ct),"Satın alma talebi oluşturuldu.","Talep oluşturulamadı.");}
+ [HttpPost][ValidateAntiForgeryToken]public async Task<IActionResult>Guncelle(TalepFormModel form,CancellationToken ct){if(!ModelState.IsValid)return await Hatali(form,"duzenle",ct);if(string.IsNullOrWhiteSpace(form.TalepNo))return BadRequest();var kayit=await service.DetayGetirAsync(form.TalepNo,ct);if(kayit is null||kayit.TalepId!=form.TalepId)return BadRequest();if(User.IsInRole("Talep Oluşturan Kullanıcı")&&kayit.TalepEden!=User.Identity!.Name)return Forbid();return await Islem(()=>service.GuncelleAsync(form,ct),"Talep bilgileri güncellendi.","Talep güncellenemedi.");}
+ [HttpPost][ValidateAntiForgeryToken][Authorize(Roles="Satın Alma Yöneticisi,Satın Alma Uzmanı")]public async Task<IActionResult>Reddet(string talepNo,CancellationToken ct)=>await Islem(()=>service.ReddetAsync(talepNo,ct),"Talep reddedildi.","Talep reddedilemedi.");
+ private async Task<IActionResult>Hatali(TalepFormModel form,string panel,CancellationToken ct)=>View("Index",new SatinAlmaTalepleriViewModel{Talepler=await service.ListeleAsync(null,ct),Form=form,AcikPanel=panel});
+ private async Task<IActionResult>Islem(Func<Task>a,string b,string h){try{await a();TempData["Basari"]=b;}catch(Exception ex){logger.LogError(ex,h);TempData["Hata"]=h+" Bilgileri kontrol ederek yeniden deneyin.";}return RedirectToAction(nameof(Index));}
+}
