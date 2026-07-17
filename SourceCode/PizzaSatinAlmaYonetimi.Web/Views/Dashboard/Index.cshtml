@@ -1,2 +1,108 @@
-@model PageViewModel
-<partial name="Module" model="Model" />
+@using System.Globalization
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var renkler = new[] { "#f7a400", "#0877f9", "#21a463", "#e83838" };
+    var toplamTalep = Model.Ozet.ToplamTalep;
+    var baslangic = 0d;
+    var dilimler = new List<string>();
+    for (var i = 0; i < Model.TalepDurumlari.Count; i++)
+    {
+        var oran = toplamTalep == 0 ? 0 : Model.TalepDurumlari[i].TalepSayisi * 100d / toplamTalep;
+        dilimler.Add($"{renkler[i % renkler.Length]} {baslangic:0.##}% {baslangic + oran:0.##}%");
+        baslangic += oran;
+    }
+    var donut = dilimler.Count == 0 ? "#edf1f6 0 100%" : string.Join(",", dilimler);
+    var grafikEnYuksek = Math.Max(1, Model.AylikOzet.SelectMany(x => new[] { x.TalepSayisi, x.TeklifSayisi }).DefaultIfEmpty(1).Max());
+}
+
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+@if (Model.HataMesaji is not null)
+{
+    <div class="dashboard-alert" role="alert">@Model.HataMesaji</div>
+}
+
+<section class="dashboard-cards" aria-label="Satın alma özeti">
+    <article class="dashboard-stat"><span class="stat-icon">▤</span><div><span>Toplam Talep</span><strong>@Model.Ozet.ToplamTalep</strong></div></article>
+    <article class="dashboard-stat"><span class="stat-icon">▧</span><div><span>Toplam Teklif</span><strong>@Model.Ozet.ToplamTeklif</strong></div></article>
+    <article class="dashboard-stat"><span class="stat-icon">♙</span><div><span>Aktif Tedarikçi</span><strong>@Model.Ozet.AktifTedarikci</strong></div></article>
+    <article class="dashboard-stat"><span class="stat-icon">⌑</span><div><span>Toplam Sipariş</span><strong>@Model.Ozet.ToplamSiparis</strong></div></article>
+</section>
+
+<section class="dashboard-visuals">
+    <article class="dashboard-panel distribution-panel">
+        <h2>Talep Durum Dağılımı</h2>
+        @if (Model.TalepDurumlari.Count == 0)
+        {
+            <p class="dashboard-empty">Gösterilecek talep verisi bulunmuyor.</p>
+        }
+        else
+        {
+            <div class="distribution-body">
+                <div class="donut" style="--donut:@donut" role="img" aria-label="Talep durum dağılımı">
+                    <div><strong>@toplamTalep</strong><span>Toplam</span></div>
+                </div>
+                <div class="distribution-legend">
+                    @for (var i = 0; i < Model.TalepDurumlari.Count; i++)
+                    {
+                        var satir = Model.TalepDurumlari[i];
+                        var yuzde = toplamTalep == 0 ? 0 : (int)Math.Round(satir.TalepSayisi * 100d / toplamTalep);
+                        <div><span class="legend-dot" style="background:@renkler[i % renkler.Length]"></span><span>@satir.Durum</span><strong>@satir.TalepSayisi (@yuzde%)</strong></div>
+                    }
+                </div>
+            </div>
+        }
+    </article>
+
+    <article class="dashboard-panel monthly-panel">
+        <h2>Aylık Talep ve Teklif Özeti</h2>
+        @if (Model.AylikOzet.Count == 0)
+        {
+            <p class="dashboard-empty">Gösterilecek aylık özet bulunmuyor.</p>
+        }
+        else
+        {
+            <div class="chart-key"><span><i></i>Talep</span><span><i></i>Teklif</span></div>
+            <div class="monthly-chart" style="--column-count:@Model.AylikOzet.Count">
+                @foreach (var ay in Model.AylikOzet)
+                {
+                    var talepBoyu = ay.TalepSayisi * 100d / grafikEnYuksek;
+                    var teklifBoyu = ay.TeklifSayisi * 100d / grafikEnYuksek;
+                    <div class="month-column">
+                        <div class="bar-area">
+                            <span class="request-bar" style="height:@talepBoyu.ToString("0.##", CultureInfo.InvariantCulture)%" title="@ay.TalepSayisi talep"></span>
+                            <span class="offer-point" style="bottom:@teklifBoyu.ToString("0.##", CultureInfo.InvariantCulture)%" title="@ay.TeklifSayisi teklif"></span>
+                        </div>
+                        <small>@ay.AyBaslangici.ToString("MMM", new CultureInfo("tr-TR"))</small>
+                    </div>
+                }
+            </div>
+        }
+    </article>
+</section>
+
+<section class="dashboard-panel latest-panel">
+    <h2>Son Satın Alma Talepleri</h2>
+    @if (Model.SonTalepler.Count == 0)
+    {
+        <p class="dashboard-empty">Gösterilecek satın alma talebi bulunmuyor.</p>
+    }
+    else
+    {
+        <div class="dashboard-table-wrap">
+            <table class="dashboard-table">
+                <thead><tr><th>Talep No</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th><th>Talep Eden</th><th>Talep Tarihi</th><th>Durum</th></tr></thead>
+                <tbody>
+                @foreach (var talep in Model.SonTalepler)
+                {
+                    var durumSinifi = talep.Durum.Contains("Onay", StringComparison.OrdinalIgnoreCase) ? "approved" :
+                        talep.Durum.Contains("Red", StringComparison.OrdinalIgnoreCase) ? "rejected" : "review";
+                    <tr><td><strong>@talep.TalepNo</strong></td><td>@talep.UrunAdi</td><td>@talep.Miktar.ToString("N2", new CultureInfo("tr-TR"))</td><td>@talep.Birim</td><td>@talep.TalepEden</td><td>@talep.TalepTarihi.ToString("dd.MM.yyyy")</td><td><span class="status-pill @durumSinifi">@talep.Durum</span></td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <a class="all-requests" asp-controller="SatinAlmaTalepleri" asp-action="Index">Tüm Talepleri Görüntüle <span>›</span></a>
+    }
+</section>
