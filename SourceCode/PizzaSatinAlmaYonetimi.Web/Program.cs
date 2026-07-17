@@ -12,6 +12,7 @@ builder.Services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IGirisService, GirisService>();
 builder.Services.AddScoped<IKullaniciYonetimiService, KullaniciYonetimiService>();
 builder.Services.AddScoped<IRolYonetimiService, RolYonetimiService>();
+builder.Services.AddScoped<ITedarikciYonetimiService, TedarikciYonetimiService>();
 builder.Services.AddSingleton<ISifreDogrulamaService, SifreDogrulamaService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
