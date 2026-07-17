@@ -1,0 +1,1 @@
+using PizzaSatinAlmaYonetimi.Web.Models;namespace PizzaSatinAlmaYonetimi.Web.Services;public interface IAyarlarService{Task<ProfilModel>ProfilGetirAsync(int uid,CancellationToken ct);Task ProfilGuncelleAsync(int uid,ProfilModel model,CancellationToken ct);Task SifreGuncelleAsync(int uid,string kullaniciAdi,SifreDegistirModel model,CancellationToken ct);}

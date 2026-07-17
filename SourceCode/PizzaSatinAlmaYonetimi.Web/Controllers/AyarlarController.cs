@@ -1,3 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;using Microsoft.AspNetCore.Authorization;using Microsoft.AspNetCore.Mvc;using PizzaSatinAlmaYonetimi.Web.Models;using PizzaSatinAlmaYonetimi.Web.Services;
 namespace PizzaSatinAlmaYonetimi.Web.Controllers;
-public sealed class AyarlarController : ModuleControllerBase { public IActionResult Index() => View(Page("Ayarlar")); }
+[Authorize]public sealed class AyarlarController(IAyarlarService service,ILogger<AyarlarController> logger):Controller
+{
+ [HttpGet]public async Task<IActionResult>Index(CancellationToken ct)=>View(new AyarlarViewModel{Profil=await service.ProfilGetirAsync(Id(),ct)});
+ [HttpPost][ValidateAntiForgeryToken]public async Task<IActionResult>ProfilGuncelle([Bind(Prefix="Profil")]ProfilModel profil,CancellationToken ct){if(!ModelState.IsValid)return View("Index",new AyarlarViewModel{Profil=profil});try{await service.ProfilGuncelleAsync(Id(),profil,ct);TempData["Basari"]="Profil bilgileriniz güncellendi.";}catch(Exception ex){logger.LogError(ex,"Profil güncellenemedi.");TempData["Hata"]="Profil bilgileriniz güncellenemedi.";}return RedirectToAction(nameof(Index));}
+ [HttpPost][ValidateAntiForgeryToken]public async Task<IActionResult>SifreGuncelle([Bind(Prefix="Sifre")]SifreDegistirModel sifre,CancellationToken ct){var profil=await service.ProfilGetirAsync(Id(),ct);if(!ModelState.IsValid)return View("Index",new AyarlarViewModel{Profil=profil,Sifre=sifre});try{await service.SifreGuncelleAsync(Id(),profil.KullaniciAdi,sifre,ct);TempData["Basari"]="Şifreniz güvenli şekilde güncellendi.";return RedirectToAction(nameof(Index));}catch(InvalidOperationException ex){ModelState.AddModelError("Sifre.MevcutSifre",ex.Message);return View("Index",new AyarlarViewModel{Profil=profil,Sifre=sifre});}catch(Exception ex){logger.LogError(ex,"Şifre güncellenemedi.");TempData["Hata"]="Şifreniz güncellenemedi.";return RedirectToAction(nameof(Index));}}
+ private int Id()=>int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+}

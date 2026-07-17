@@ -17,6 +17,8 @@ builder.Services.AddScoped<ISatinAlmaTalebiService, SatinAlmaTalebiService>();
 builder.Services.AddScoped<ITeklifGirisiService, TeklifGirisiService>();
 builder.Services.AddScoped<ITeklifKarsilastirmaService, TeklifKarsilastirmaService>();
 builder.Services.AddScoped<ISatinAlmaOnayService, SatinAlmaOnayService>();
+builder.Services.AddScoped<IBildirimService, BildirimService>();
+builder.Services.AddScoped<IAyarlarService, AyarlarService>();
 builder.Services.AddSingleton<ISifreDogrulamaService, SifreDogrulamaService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
