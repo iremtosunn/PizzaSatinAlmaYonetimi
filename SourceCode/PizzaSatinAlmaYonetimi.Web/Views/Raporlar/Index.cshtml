@@ -1,2 +1,63 @@
-@model PageViewModel
-<partial name="Module" model="Model" />
+@model RaporlarViewModel
+@{
+    ViewData["Title"] = "Raporlar";
+}
+<link rel="stylesheet" href="~/css/raporlar.css" asp-append-version="true" />
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="report-alert" role="alert">@hata</div>
+}
+@if (Model.HataMesaji is not null)
+{
+    <div class="report-alert" role="alert">@Model.HataMesaji</div>
+}
+
+<section class="report-filter-card" aria-label="Rapor filtreleri">
+    <form method="get" asp-action="Index" class="report-filter-form">
+        <label>
+            <span>Rapor Türü</span>
+            <select name="raporTuru" aria-label="Rapor türü">
+                @foreach (var option in Model.RaporTurleri)
+                {
+                    if (option.Deger == Model.RaporTuru)
+                    {
+                        <option value="@option.Deger" selected>@option.Metin</option>
+                    }
+                    else
+                    {
+                        <option value="@option.Deger">@option.Metin</option>
+                    }
+                }
+            </select>
+        </label>
+        <button type="submit" class="report-primary">Raporu Getir</button>
+        <a class="report-export" asp-action="Csv" asp-route-raporTuru="@Model.RaporTuru"><span aria-hidden="true">⇩</span> Dışa Aktar</a>
+    </form>
+</section>
+
+<section class="report-panel">
+    <div class="report-heading">
+        <h2>Rapor Sonuçları</h2>
+        <span>@Model.RaporTurleri.FirstOrDefault(x => x.Deger == Model.RaporTuru)?.Metin</span>
+    </div>
+
+    @if (Model.HataMesaji is null && Model.Satirlar.Count == 0)
+    {
+        <p class="report-empty">Seçilen rapor için gösterilecek veri bulunmuyor.</p>
+    }
+    else if (Model.HataMesaji is null)
+    {
+        <div class="report-table-wrap">
+            <table class="report-table">
+                <thead><tr>@foreach (var column in Model.Sutunlar) { <th>@column</th> }</tr></thead>
+                <tbody>
+                    @foreach (var row in Model.Satirlar)
+                    {
+                        <tr>@foreach (var cell in row) { <td>@cell</td> }</tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
