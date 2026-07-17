@@ -1,0 +1,40 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var links = new[] {
+        ("Dashboard", "Dashboard", "▦"), ("KullaniciYonetimi", "Kullanıcı Yönetimi", "♙"),
+        ("RolYonetimi", "Rol Yönetimi", "♢"), ("TedarikciYonetimi", "Tedarikçi Yönetimi", "▱"),
+        ("SatinAlmaTalepleri", "Satın Alma Talepleri", "▤"), ("TeklifGirisi", "Teklif Girişi", "□"),
+        ("TeklifKarsilastirma", "Teklif Karşılaştırma", "⚖"), ("SatinAlmaOnayi", "Satın Alma Onayı", "✓"),
+        ("Bildirimler", "Bildirimler", "♢"), ("Raporlar", "Raporlar", "▥"), ("Ayarlar", "Ayarlar", "⚙")
+    };
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Satın Alma</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ui-reference.css" asp-append-version="true" />
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark">▣</span><span>Satın Alma</span></a>
+    <nav aria-label="Ana menü">
+        @foreach (var link in links)
+        {
+            <a class="nav-link @(controller == link.Item1 ? "active" : "")" asp-controller="@link.Item1" asp-action="Index"><span aria-hidden="true">@link.Item3</span><span>@link.Item2</span></a>
+        }
+    </nav>
+</aside>
+<div class="page-shell">
+    <header class="topbar">
+        <h1>@ViewData["Title"]</h1>
+        <div class="user-area"><span class="avatar" aria-hidden="true">●</span><span><strong>Kullanıcı</strong><small>Satın Alma Yönetimi</small></span></div>
+    </header>
+    <main class="content">@RenderBody()</main>
+</div>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

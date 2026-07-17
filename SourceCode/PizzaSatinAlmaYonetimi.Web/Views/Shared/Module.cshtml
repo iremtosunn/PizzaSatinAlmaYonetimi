@@ -1,0 +1,7 @@
+@model PageViewModel
+@{ ViewData["Title"] = Model.Title; }
+<section class="empty-state">
+    <div class="empty-icon" aria-hidden="true">▦</div>
+    <h2>@Model.Title</h2>
+    <p>@Model.Description</p>
+</section>

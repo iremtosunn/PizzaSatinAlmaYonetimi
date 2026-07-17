@@ -1,0 +1,11 @@
+/* UI görsellerindeki ortak şablonun yüzey ve geçiş düzeltmeleri. */
+:root {
+    --nav-dark: #002b59;
+    --nav: #07599b;
+    --background: #fcfdff;
+    --line: #e3e9f1;
+}
+.sidebar { background: linear-gradient(180deg, var(--nav-dark) 0%, var(--nav) 100%); }
+.content { background: var(--background); }
+.nav-link.active { background: linear-gradient(135deg, #0588ff, #1767e8); }
+.empty-state { background: #fff; border: 1px solid var(--line); box-shadow: 0 2px 10px rgb(23 52 91 / 6%); }
