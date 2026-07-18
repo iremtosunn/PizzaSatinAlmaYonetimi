@@ -371,23 +371,47 @@ BEGIN TRY
         SELECT @BildirimKullaniciID=KullaniciID FROM Alicilar
         WHERE rn=((@Sira-1)%@BildirimKullaniciSayisi)+1;
 
-        SET @Kod=RIGHT(N'0000'+CONVERT(nvarchar(10),@Sira),4);
         SET @Baslik=CASE @Sira%5
             WHEN 1 THEN N'Son teklif tarihine 3 gün kaldı'
             WHEN 2 THEN N'Teklif için bugün son gün'
             WHEN 3 THEN N'Uzun süredir teklif bekleyen talep'
             WHEN 4 THEN N'Onay bekleyen satın alma'
             ELSE N'Tamamlanmayan satın alma talebi' END;
-        SET @Mesaj=N'[LARGE-'+@Kod+N'] '+CASE @Sira%5
-            WHEN 1 THEN N'İlgili teklifin geçerlilik süresinin dolmasına 3 gün kaldı.'
-            WHEN 2 THEN N'İlgili teklifin değerlendirilmesi için bugün son gündür.'
-            WHEN 3 THEN N'Bir satın alma talebi uzun süredir tedarikçi teklifi bekliyor.'
-            WHEN 4 THEN N'Seçilen teklif satın alma onayı bekliyor.'
-            ELSE N'Henüz tamamlanmamış bir satın alma talebi bulunuyor.' END;
+        SET @Mesaj=NULL;
+        IF @Sira%5 IN(1,2)
+            SELECT TOP(1) @Mesaj=CONCAT(t.TeklifNo,
+                CASE WHEN @Sira%5=1 THEN N' numaralı teklifin geçerlilik süresinin dolmasına 3 gün kaldı. Talep: '
+                     ELSE N' numaralı teklifin son günü bugün. Talep: ' END,
+                sat.TalepNo,N' - ',sat.UrunAdi,N'. Tedarikçi: ',f.FirmaAdi,
+                N'. Tutar: ',FORMAT(t.TeklifTutari,N'N2',N'tr-TR'),N' ',RTRIM(t.ParaBirimi),
+                N'. Geçerlilik Tarihi: ',CONVERT(nvarchar(10),t.GecerlilikTarihi,104),N'.')
+            FROM dbo.Teklifler t
+            INNER JOIN dbo.SatinAlmaTalepleri sat ON sat.TalepID=t.TalepID
+            INNER JOIN dbo.Tedarikciler ted ON ted.TedarikciID=t.TedarikciID
+            INNER JOIN dbo.Firmalar f ON f.FirmaID=ted.FirmaID
+            ORDER BY ABS(CHECKSUM(CONCAT(@Sira,N'-',t.TeklifID)));
+        ELSE IF @Sira%5=4
+            SELECT TOP(1) @Mesaj=CONCAT(sat.TalepNo,N' numaralı talep için ',t.TeklifNo,
+                N' numaralı teklif onay bekliyor. Ürün: ',sat.UrunAdi,N'. Tedarikçi: ',f.FirmaAdi,
+                N'. Tutar: ',FORMAT(t.TeklifTutari,N'N2',N'tr-TR'),N' ',RTRIM(t.ParaBirimi),N'.')
+            FROM dbo.Teklifler t
+            INNER JOIN dbo.SatinAlmaTalepleri sat ON sat.TalepID=t.TalepID
+            INNER JOIN dbo.Tedarikciler ted ON ted.TedarikciID=t.TedarikciID
+            INNER JOIN dbo.Firmalar f ON f.FirmaID=ted.FirmaID
+            ORDER BY ABS(CHECKSUM(CONCAT(@Sira,N'-',t.TeklifID)));
+        ELSE
+            SELECT TOP(1) @Mesaj=CONCAT(sat.TalepNo,
+                CASE WHEN @Sira%5=3 THEN N' numaralı talep için uzun süredir teklif bekleniyor. Ürün: '
+                     ELSE N' numaralı satın alma talebi henüz tamamlanmadı. Ürün: ' END,
+                sat.UrunAdi,N'. Talep Eden: ',k.AdSoyad,N'. Talep Tarihi: ',
+                CONVERT(nvarchar(10),sat.TalepTarihi,104),N'.')
+            FROM dbo.SatinAlmaTalepleri sat
+            INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=sat.TalepEdenKullaniciID
+            ORDER BY ABS(CHECKSUM(CONCAT(@Sira,N'-',sat.TalepID)));
         SET @OkunduMu=CASE WHEN @Sira%3=0 THEN 1 ELSE 0 END;
         SET @OlusturmaTarihi=DATEADD(HOUR,-(@Sira*3),GETDATE());
 
-        IF NOT EXISTS (SELECT 1 FROM dbo.Bildirimler WHERE Mesaj=@Mesaj)
+        IF @Mesaj IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Bildirimler WHERE Mesaj=@Mesaj)
             INSERT dbo.Bildirimler
                 (KullaniciID,Baslik,Mesaj,OkunduMu,OlusturmaTarihi,OkunmaTarihi)
             VALUES
