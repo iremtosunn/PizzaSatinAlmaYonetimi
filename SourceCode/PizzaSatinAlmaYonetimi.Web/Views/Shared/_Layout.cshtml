@@ -24,10 +24,10 @@
         @foreach (var link in links)
         {
             var linkGorunsun =
-                User.IsInRole("SatÄ±n Alma YÃ¶neticisi") ||
-                (User.IsInRole("SatÄ±n Alma UzmanÄ±") && new[] { "Dashboard", "TedarikciYonetimi", "SatinAlmaTalepleri", "TeklifGirisi", "TeklifKarsilastirma", "Bildirimler", "Raporlar", "Ayarlar" }.Contains(link.Item1)) ||
-                (User.IsInRole("Talep OluÅŸturan KullanÄ±cÄ±") && new[] { "Dashboard", "SatinAlmaTalepleri", "Bildirimler", "Ayarlar" }.Contains(link.Item1)) ||
-                (User.IsInRole("TedarikÃ§i") && new[] { "Dashboard", "Bildirimler", "Ayarlar" }.Contains(link.Item1));
+                User.IsInRole("Satın Alma Yöneticisi") ||
+                (User.IsInRole("Satın Alma Uzmanı") && new[] { "Dashboard", "TedarikciYonetimi", "SatinAlmaTalepleri", "TeklifGirisi", "TeklifKarsilastirma", "Bildirimler", "Raporlar", "Ayarlar" }.Contains(link.Item1)) ||
+                (User.IsInRole("Talep Oluşturan Kullanıcı") && new[] { "Dashboard", "SatinAlmaTalepleri", "Bildirimler", "Ayarlar" }.Contains(link.Item1)) ||
+                (User.IsInRole("Tedarikçi") && new[] { "Dashboard", "Bildirimler", "Ayarlar" }.Contains(link.Item1));
             if (linkGorunsun)
             {
                 <a class="nav-link @(controller == link.Item1 ? "active" : "")" asp-controller="@link.Item1" asp-action="Index"><span aria-hidden="true">@link.Item3</span><span>@link.Item2</span></a>

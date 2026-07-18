@@ -20,7 +20,7 @@ public sealed class HataController(ILogger<HataController> logger) : Controller
 
         Response.StatusCode = statusCode ?? StatusCodes.Status500InternalServerError;
         return statusCode == StatusCodes.Status403Forbidden
-            ? View(new PageViewModel("Yetkisiz erişim", "Bu sayfaya erişim yetkiniz yok."))
+            ? View(new PageViewModel("Yetkisiz erişim", "Bu sayfaya erişim yetkiniz bulunmamaktadır."))
             : View(new PageViewModel("Bir sorun oluştu", "İşleminiz tamamlanamadı. Lütfen daha sonra yeniden deneyin."));
     }
 }

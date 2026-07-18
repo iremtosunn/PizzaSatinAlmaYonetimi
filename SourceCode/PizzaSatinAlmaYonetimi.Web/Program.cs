@@ -33,6 +33,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.Redirect(context.HttpContext.User.Identity?.IsAuthenticated == true
+                ? options.AccessDeniedPath.Value!
+                : options.LoginPath.Value!);
+            return Task.CompletedTask;
+        };
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.Redirect(options.AccessDeniedPath.Value!);
+            return Task.CompletedTask;
+        };
     });
 
 var app = builder.Build();

@@ -32,12 +32,9 @@ BEGIN
         WHERE t.TeklifDurumID=0 AND t.GecerlilikTarihi=DATEADD(DAY,3,@Bugun)
     ), Alici AS
     (
-        SELECT o.*,k.KullaniciID FROM Olay o
-        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=o.TeklifGirenKullaniciID AND k.Durum=1
-        UNION
         SELECT o.*,k.KullaniciID FROM Olay o CROSS JOIN dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
-        WHERE k.Durum=1 AND r.RolAdi=N'Satın Alma Yöneticisi'
+        WHERE k.Durum=1 AND r.RolAdi IN(N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')
     )
     INSERT dbo.Bildirimler(KullaniciID,Baslik,Mesaj,OkunduMu,OlusturmaTarihi,OkunmaTarihi)
     SELECT a.KullaniciID,N'Yaklaşan Teklif Geçerlilik Tarihi',
@@ -70,12 +67,9 @@ BEGIN
         WHERE t.TeklifDurumID=0 AND t.GecerlilikTarihi=@Bugun
     ), Alici AS
     (
-        SELECT o.*,k.KullaniciID FROM Olay o
-        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=o.TeklifGirenKullaniciID AND k.Durum=1
-        UNION
         SELECT o.*,k.KullaniciID FROM Olay o CROSS JOIN dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
-        WHERE k.Durum=1 AND r.RolAdi=N'Satın Alma Yöneticisi'
+        WHERE k.Durum=1 AND r.RolAdi IN(N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')
     )
     INSERT dbo.Bildirimler(KullaniciID,Baslik,Mesaj,OkunduMu,OlusturmaTarihi,OkunmaTarihi)
     SELECT a.KullaniciID,N'Teklif İçin Bugün Son Gün',
@@ -106,9 +100,6 @@ BEGIN
           AND NOT EXISTS(SELECT 1 FROM dbo.Teklifler t WHERE t.TalepID=sat.TalepID)
     ), Alici AS
     (
-        SELECT o.*,k.KullaniciID FROM Olay o
-        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=o.TalepEdenKullaniciID AND k.Durum=1
-        UNION
         SELECT o.*,k.KullaniciID FROM Olay o CROSS JOIN dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
         WHERE k.Durum=1 AND r.RolAdi IN(N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')
@@ -177,9 +168,6 @@ BEGIN
         WHERE sat.TalepDurumID IN(0,1) AND sat.TalepTarihi<DATEADD(DAY,-14,@Bugun)
     ), Alici AS
     (
-        SELECT o.*,k.KullaniciID FROM Olay o
-        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=o.TalepEdenKullaniciID AND k.Durum=1
-        UNION
         SELECT o.*,k.KullaniciID FROM Olay o CROSS JOIN dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
         WHERE k.Durum=1 AND r.RolAdi IN(N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')
@@ -217,9 +205,6 @@ BEGIN
         INNER JOIN dbo.Firmalar f ON f.FirmaID=ted.FirmaID
     ), Alici AS
     (
-        SELECT o.*,k.KullaniciID FROM Olay o
-        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID IN(o.OnaylayanKullaniciID,o.TalepEdenKullaniciID) AND k.Durum=1
-        UNION
         SELECT o.*,k.KullaniciID FROM Olay o CROSS JOIN dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
         WHERE k.Durum=1 AND r.RolAdi=N'Satın Alma Yöneticisi'
@@ -241,6 +226,71 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE dbo.sp_BildirimTalepSahibiDurumlari
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @Bugun date=CONVERT(date,GETDATE());
+
+    ;WITH Durumlar AS
+    (
+        SELECT sat.TalepEdenKullaniciID AS KullaniciID,sat.TalepNo,sat.UrunAdi,
+               t.TeklifNo,sat.TalepDurumID,
+               CASE sat.TalepDurumID
+                   WHEN 0 THEN N'Talebiniz İnceleniyor'
+                   WHEN 1 THEN N'Talebiniz İçin Teklifler Toplanıyor'
+                   WHEN 2 THEN N'Talebiniz Onaylandı'
+                   ELSE N'Talebiniz Reddedildi' END AS Baslik,
+               CASE sat.TalepDurumID
+                   WHEN 0 THEN CONCAT(sat.TalepNo,N' numaralı talebiniz inceleniyor. Ürün: ',sat.UrunAdi,N'.')
+                   WHEN 1 THEN CONCAT(sat.TalepNo,N' numaralı talebiniz için teklifler toplanıyor. Ürün: ',sat.UrunAdi,N'.')
+                   WHEN 2 THEN CONCAT(sat.TalepNo,N' numaralı talebiniz onaylandı.',CASE WHEN t.TeklifNo IS NULL THEN N'' ELSE N' Teklif: '+t.TeklifNo+N'.' END,N' Ürün: ',sat.UrunAdi,N'.')
+                   ELSE CONCAT(sat.TalepNo,N' numaralı talebiniz reddedildi. Ürün: ',sat.UrunAdi,N'.') END AS Mesaj
+        FROM dbo.SatinAlmaTalepleri sat
+        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=sat.TalepEdenKullaniciID AND k.Durum=1
+        OUTER APPLY
+        (
+            SELECT TOP(1) x.TeklifNo FROM dbo.Teklifler x
+            WHERE x.TalepID=sat.TalepID AND x.TeklifDurumID=1
+            ORDER BY x.TeklifID DESC
+        ) t
+    )
+    INSERT dbo.Bildirimler(KullaniciID,Baslik,Mesaj,OkunduMu,OlusturmaTarihi,OkunmaTarihi)
+    SELECT d.KullaniciID,d.Baslik,d.Mesaj,0,GETDATE(),NULL
+    FROM Durumlar d
+    WHERE NOT EXISTS
+    (
+        SELECT 1 FROM dbo.Bildirimler b WITH(UPDLOCK,HOLDLOCK)
+        WHERE b.KullaniciID=d.KullaniciID AND b.Baslik=d.Baslik AND b.Mesaj=d.Mesaj
+          AND b.OlusturmaTarihi>=@Bugun AND b.OlusturmaTarihi<DATEADD(DAY,1,@Bugun)
+    );
+
+    ;WITH SiparisDurumlari AS
+    (
+        SELECT sat.TalepEdenKullaniciID AS KullaniciID,sat.TalepNo,sat.UrunAdi,
+               t.TeklifNo,s.SiparisNo,s.SiparisDurumID,
+               CASE s.SiparisDurumID WHEN 0 THEN N'Talebiniz İçin Sipariş Oluşturuldu' ELSE N'Talebiniz Tamamlandı' END AS Baslik,
+               CASE s.SiparisDurumID
+                   WHEN 0 THEN CONCAT(sat.TalepNo,N' numaralı talebiniz için ',s.SiparisNo,N' numaralı sipariş oluşturuldu. Teklif: ',t.TeklifNo,N'. Ürün: ',sat.UrunAdi,N'.')
+                   ELSE CONCAT(sat.TalepNo,N' numaralı talebiniz tamamlandı. Sipariş: ',s.SiparisNo,N'. Teklif: ',t.TeklifNo,N'. Ürün: ',sat.UrunAdi,N'.') END AS Mesaj
+        FROM dbo.SatinAlmaSiparisleri s
+        INNER JOIN dbo.Teklifler t ON t.TeklifID=s.TeklifID
+        INNER JOIN dbo.SatinAlmaTalepleri sat ON sat.TalepID=s.TalepID
+        INNER JOIN dbo.Kullanicilar k ON k.KullaniciID=sat.TalepEdenKullaniciID AND k.Durum=1
+        WHERE s.SiparisDurumID IN(0,1)
+    )
+    INSERT dbo.Bildirimler(KullaniciID,Baslik,Mesaj,OkunduMu,OlusturmaTarihi,OkunmaTarihi)
+    SELECT d.KullaniciID,d.Baslik,d.Mesaj,0,GETDATE(),NULL
+    FROM SiparisDurumlari d
+    WHERE NOT EXISTS
+    (
+        SELECT 1 FROM dbo.Bildirimler b WITH(UPDLOCK,HOLDLOCK)
+        WHERE b.KullaniciID=d.KullaniciID AND b.Baslik=d.Baslik AND b.Mesaj=d.Mesaj
+          AND b.OlusturmaTarihi>=@Bugun AND b.OlusturmaTarihi<DATEADD(DAY,1,@Bugun)
+    );
+END;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.sp_BildirimGunlukKontrol
 AS
 BEGIN
@@ -251,6 +301,7 @@ BEGIN
     EXEC dbo.sp_BildirimOnayBekleyenSatinAlmalar;
     EXEC dbo.sp_BildirimTamamlanmayanTalepler;
     EXEC dbo.sp_BildirimSiparisDurumlari;
+    EXEC dbo.sp_BildirimTalepSahibiDurumlari;
 END;
 GO
 

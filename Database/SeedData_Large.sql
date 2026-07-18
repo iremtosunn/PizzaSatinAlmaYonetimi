@@ -353,7 +353,7 @@ BEGIN TRY
         SELECT COUNT(*) FROM dbo.Kullanicilar k
         INNER JOIN dbo.Roller r ON r.RolID=k.RolID
         WHERE k.Durum=1 AND r.RolAdi IN
-            (N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı',N'Talep Oluşturan Kullanıcı')
+            (N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')
     );
     SET @Sira=1;
     DECLARE @BildirimKullaniciID int,@Baslik nvarchar(100),@Mesaj nvarchar(500),
@@ -362,14 +362,15 @@ BEGIN TRY
     BEGIN
         ;WITH Alicilar AS
         (
-            SELECT k.KullaniciID,ROW_NUMBER() OVER(ORDER BY k.KullaniciID) rn
+            SELECT k.KullaniciID,ROW_NUMBER() OVER(ORDER BY k.KullaniciID) rn,COUNT(*) OVER() toplam
             FROM dbo.Kullanicilar k
             INNER JOIN dbo.Roller r ON r.RolID=k.RolID
-            WHERE k.Durum=1 AND r.RolAdi IN
-                (N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı',N'Talep Oluşturan Kullanıcı')
+            WHERE k.Durum=1
+              AND ((@Sira%5=4 AND r.RolAdi=N'Satın Alma Yöneticisi')
+                   OR (@Sira%5<>4 AND r.RolAdi IN(N'Satın Alma Yöneticisi',N'Satın Alma Uzmanı')))
         )
         SELECT @BildirimKullaniciID=KullaniciID FROM Alicilar
-        WHERE rn=((@Sira-1)%@BildirimKullaniciSayisi)+1;
+        WHERE rn=((@Sira-1)%toplam)+1;
 
         SET @Baslik=CASE @Sira%5
             WHEN 1 THEN N'Son teklif tarihine 3 gün kaldı'
