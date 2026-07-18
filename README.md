@@ -1,45 +1,83 @@
 # Pizza Satın Alma Yönetimi
 
-Bu repository, pizza fabrikasının satın alma süreçleri için ASP.NET Core MVC tabanlı uygulama altyapısını içerir. Bu aşamada ekranların işlevleri, örnek veriler, dashboard sorguları, bildirim görevleri ve raporlar uygulanmamıştır.
+Bu repository, pizza fabrikasının satın alma süreçleri için geliştirilmiş ASP.NET Core MVC tabanlı satın alma yönetim sistemi uygulamasını içerir.
+
+Proje; satın alma taleplerinin oluşturulması, tedarikçilerin yönetilmesi, tekliflerin girilmesi, tekliflerin karşılaştırılması, satın alma onayı, bildirimler, raporlar ve rol bazlı kullanıcı erişimi gibi temel süreçleri kapsar.
+
+## Kullanılan Teknolojiler
+
+- ASP.NET Core MVC
+- .NET 8
+- C#
+- SQL Server
+- Stored Procedure
+- ADO.NET
+- HTML / CSS / JavaScript
+- Visual Studio Code
+- SQL Server Management Studio
+
+## Kullanıcı Rolleri
+
+Sistemde rol bazlı erişim yapısı bulunmaktadır.
+
+### Satın Alma Yöneticisi
+
+- Dashboard ekranını görüntüleyebilir.
+- Kullanıcı yönetimi yapabilir.
+- Rol yönetimi yapabilir.
+- Tedarikçi yönetimi yapabilir.
+- Satın alma taleplerini görüntüleyebilir.
+- Talepleri reddedebilir ve geri alabilir.
+- Teklif girişi ve teklif karşılaştırma ekranlarını kullanabilir.
+- Satın alma onayı verebilir.
+- Bildirimleri ve raporları görüntüleyebilir.
+- Ayarlar ekranından çıkış yapabilir.
+
+### Satın Alma Uzmanı
+
+- Dashboard ekranını görüntüleyebilir.
+- Tedarikçi yönetimi yapabilir.
+- Satın alma taleplerini görüntüleyebilir.
+- Talepleri reddedebilir ve geri alabilir.
+- Teklif girişi yapabilir.
+- Teklif karşılaştırma ekranını görüntüleyebilir.
+- Bildirimleri ve raporları görüntüleyebilir.
+- Ayarlar ekranından çıkış yapabilir.
+
+### Talep Oluşturan Kullanıcı
+
+- Dashboard ekranını görüntüleyebilir.
+- Satın alma taleplerini görüntüleyebilir.
+- Yeni talep oluşturabilir.
+- Kendi oluşturduğu talepleri düzenleyebilir.
+- Bildirimlerini görüntüleyebilir.
+- Ayarlar ekranından çıkış yapabilir.
+
+## Ana Modüller
+
+- Giriş ekranı
+- Dashboard
+- Kullanıcı yönetimi
+- Rol yönetimi
+- Tedarikçi yönetimi
+- Satın alma talepleri
+- Teklif girişi
+- Teklif karşılaştırma
+- Satın alma onayı
+- Bildirimler
+- Raporlar
+- Ayarlar
 
 ## Gereksinimler
 
 - .NET 8 SDK
 - Microsoft SQL Server
-- Visual Studio 2022, Visual Studio Code veya uyumlu bir geliştirme ortamı
+- Visual Studio Code veya Visual Studio
+- SQL Server Management Studio
 
-## Yerelde çalıştırma
+## Yerelde Çalıştırma
 
-1. Repository'yi bilgisayarınıza alın.
-2. `SourceCode/PizzaSatinAlmaYonetimi.Web/appsettings.json` içindeki `ConnectionStrings:SqlServer` örnek değerini kendi yerel/güvenli bağlantı ayarınızla değiştirin. Gerçek parolaları kaynak kontrolüne eklemeyin; geliştirme sırasında kullanıcı gizleri veya ortam değişkenleri kullanın.
-3. `appsettings.json` içindeki `Security:PasswordPepper` değeri yalnızca geliştirme placeholder'ıdır. Gerçek pepper değerini hiçbir zaman `appsettings.json` dosyasına veya kaynak kontrolüne yazmayın; kullanıcı gizleri, ortam değişkenleri ya da güvenli bir secret kasası üzerinden sağlayın.
-4. Repository kökünde bağımlılıkları yükleyin:
+Web uygulamasını çalıştırmak için doğru proje klasörüne gidilmelidir:
 
-   ```powershell
-   dotnet restore .\PizzaSatinAlmaYonetimi.sln
-   ```
-
-5. Projeyi derleyin:
-
-   ```powershell
-   dotnet build .\PizzaSatinAlmaYonetimi.sln
-   ```
-
-6. Web uygulamasını başlatın:
-
-   ```powershell
-   dotnet run --project .\SourceCode\PizzaSatinAlmaYonetimi.Web\PizzaSatinAlmaYonetimi.Web.csproj
-   ```
-
-7. Konsolda gösterilen yerel HTTPS adresini tarayıcıda açın. Giriş ekranı iskeleti için `/Giris`, ana uygulama iskeleti için `/` yolunu kullanın.
-
-## Yapı
-
-- `Controllers`: MVC denetleyicileri ve ortak hata denetleyicisi
-- `Models`: Görünüm modelleri
-- `Views`: Türkçe ekran iskeletleri ve ortak şablon
-- `Services`: Stored procedure tabanlı servis sözleşmeleri için başlangıç noktası
-- `Data`: SQL Server bağlantı fabrikası
-- `wwwroot`: CSS ve JavaScript dosyaları
-
-Mevcut SQL scripti uygulama tarafından değiştirilmez. Veri erişimi geliştirildiğinde işlemler mevcut stored procedure'lerle eşleştirilecektir.
+```powershell
+cd C:\Users\Gaming\Desktop\PizzaSatinAlmaYonetimi\SourceCode\PizzaSatinAlmaYonetimi.Web
