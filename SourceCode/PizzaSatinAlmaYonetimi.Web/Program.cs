@@ -1,4 +1,4 @@
-using PizzaSatinAlmaYonetimi.Web.Data;
+﻿using PizzaSatinAlmaYonetimi.Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PizzaSatinAlmaYonetimi.Web.Services;
 
@@ -26,7 +26,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Giris";
-        options.AccessDeniedPath = "/Giris";
+        options.AccessDeniedPath = "/Hata/403";
         options.Cookie.Name = "PizzaSatinAlma.Oturum";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
@@ -52,6 +52,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Giris}/{action=Index}/{id?}");
 
 app.Run();
+

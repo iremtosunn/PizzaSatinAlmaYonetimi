@@ -15,7 +15,7 @@ public sealed class GirisService(
         await connection.OpenAsync(cancellationToken);
 
         var kullanici = await KullaniciGetirAsync(connection, kullaniciAdi.Trim(), cancellationToken);
-        if (kullanici is null || kullanici.Durum != 1 ||
+        if (kullanici is null || kullanici.Durum != 1 || kullanici.RolAdi == "Tedarikçi" ||
             !sifreDogrulamaService.Dogrula(sifre, kullanici.SifreSalt, kullanici.SifreHash))
             return null;
 

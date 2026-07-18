@@ -19,6 +19,8 @@ public sealed class HataController(ILogger<HataController> logger) : Controller
             logger.LogWarning("HTTP {StatusCode} yanıtı. İz: {TraceId}", statusCode, HttpContext.TraceIdentifier);
 
         Response.StatusCode = statusCode ?? StatusCodes.Status500InternalServerError;
-        return View(new PageViewModel("Bir sorun oluştu", "İşleminiz tamamlanamadı. Lütfen daha sonra yeniden deneyin."));
+        return statusCode == StatusCodes.Status403Forbidden
+            ? View(new PageViewModel("Yetkisiz erişim", "Bu sayfaya erişim yetkiniz yok."))
+            : View(new PageViewModel("Bir sorun oluştu", "İşleminiz tamamlanamadı. Lütfen daha sonra yeniden deneyin."));
     }
 }

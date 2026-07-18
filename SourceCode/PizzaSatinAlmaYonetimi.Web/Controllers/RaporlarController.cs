@@ -6,7 +6,7 @@ using PizzaSatinAlmaYonetimi.Web.Services;
 
 namespace PizzaSatinAlmaYonetimi.Web.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Satın Alma Yöneticisi,Satın Alma Uzmanı")]
 public sealed class RaporlarController(IRaporlarService service, ILogger<RaporlarController> logger) : Controller
 {
     [HttpGet]
