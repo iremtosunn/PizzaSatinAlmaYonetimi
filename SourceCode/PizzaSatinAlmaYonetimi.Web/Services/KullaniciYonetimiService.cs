@@ -7,6 +7,11 @@ namespace PizzaSatinAlmaYonetimi.Web.Services;
 
 public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFactory, ISifreDogrulamaService sifreService) : IKullaniciYonetimiService
 {
+    private static readonly HashSet<string> KullaniciRolleri = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Satın Alma Yöneticisi", "Satın Alma Uzmanı", "Talep Oluşturan Kullanıcı"
+    };
+
     public async Task<IReadOnlyList<KullaniciListeSatiri>> ListeleAsync(KullaniciFiltreModel? filtre, CancellationToken cancellationToken)
     {
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken);
@@ -21,11 +26,14 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            if (reader.GetString("RolAdi") == "Tedarikçi") continue;
-            result.Add(new(reader.GetInt32("KullaniciID"), reader.GetString("AdSoyad"), reader.GetString("KullaniciAdi"), reader.GetString("Eposta"), reader.GetString("RolAdi"), reader.GetString("Durum"),
+            var rolAdi = reader.GetString("RolAdi").Trim();
+            if (string.Equals(rolAdi, "Tedarikçi", StringComparison.OrdinalIgnoreCase) || !KullaniciRolleri.Contains(rolAdi)) continue;
+            result.Add(new(reader.GetInt32("KullaniciID"), reader.GetString("AdSoyad"), reader.GetString("KullaniciAdi"), reader.GetString("Eposta"), rolAdi, reader.GetString("Durum"),
                 reader.IsDBNull("SonGirisTarihi") ? null : reader.GetDateTime("SonGirisTarihi"), reader.GetDateTime("KayitTarihi")));
         }
-        return result;
+        return result
+            .Where(kullanici => !string.Equals(kullanici.RolAdi.Trim(), "Tedarikçi", StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
     public async Task<KullaniciOzet> OzetGetirAsync(CancellationToken cancellationToken)
@@ -39,7 +47,14 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
     {
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken);
         await using var command = Komut(connection, "dbo.sp_RolleriListele"); await using var reader = await command.ExecuteReaderAsync(cancellationToken); var result = new List<RolSecenegi>();
-        while (await reader.ReadAsync(cancellationToken)) if (reader.GetString("RolAdi") != "Tedarikçi") result.Add(new(reader.GetInt32("RolID"), reader.GetString("RolAdi"))); return result;
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var rolAdi = reader.GetString("RolAdi").Trim();
+            if (!string.Equals(rolAdi, "Tedarikçi", StringComparison.OrdinalIgnoreCase) && KullaniciRolleri.Contains(rolAdi)) result.Add(new(reader.GetInt32("RolID"), rolAdi));
+        }
+        return result
+            .Where(rol => !string.Equals(rol.RolAdi.Trim(), "Tedarikçi", StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
     public async Task<KullaniciFormModel?> DetayGetirAsync(int kullaniciId, CancellationToken cancellationToken)
@@ -47,12 +62,13 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken);
         await using var command = Komut(connection, "dbo.sp_KullaniciDetayiGetir"); Ekle(command, "@KullaniciID", SqlDbType.Int, kullaniciId);
         await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SingleRow, cancellationToken);
-        return await reader.ReadAsync(cancellationToken) ? new() { KullaniciId=reader.GetInt32("KullaniciID"), AdSoyad=reader.GetString("AdSoyad"), KullaniciAdi=reader.GetString("KullaniciAdi"), Eposta=reader.GetString("Eposta"), RolAdi=reader.GetString("RolAdi") } : null;
+        if (!await reader.ReadAsync(cancellationToken) || !KullaniciRolleri.Contains(reader.GetString("RolAdi"))) return null;
+        return new() { KullaniciId=reader.GetInt32("KullaniciID"), AdSoyad=reader.GetString("AdSoyad"), KullaniciAdi=reader.GetString("KullaniciAdi"), Eposta=reader.GetString("Eposta"), RolAdi=reader.GetString("RolAdi") };
     }
 
     public async Task EkleAsync(KullaniciFormModel model, CancellationToken cancellationToken)
     {
-        TedarikciRolunuEngelle(model);
+        KullaniciRolunuDogrula(model);
         if (string.IsNullOrWhiteSpace(model.GeciciSifre)) throw new InvalidOperationException("Yeni kullanıcı için geçici şifre zorunludur.");
         var (hash, salt) = sifreService.HashOlustur(model.GeciciSifre);
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken); await using var command = Komut(connection, "dbo.sp_KullaniciEkle");
@@ -61,7 +77,7 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
 
     public async Task GuncelleAsync(KullaniciFormModel model, CancellationToken cancellationToken)
     {
-        TedarikciRolunuEngelle(model);
+        KullaniciRolunuDogrula(model);
         if (!model.KullaniciId.HasValue) throw new InvalidOperationException("Kullanıcı ID zorunludur.");
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken); await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         try {
@@ -79,5 +95,5 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
     private static SqlCommand Komut(SqlConnection c,string ad,SqlTransaction? t=null)=>new(ad,c,t){CommandType=CommandType.StoredProcedure};
     private static void Ekle(SqlCommand c,string ad,SqlDbType tip,object? deger,int? boyut=null){var p=boyut.HasValue?c.Parameters.Add(ad,tip,boyut.Value):c.Parameters.Add(ad,tip);p.Value=deger??DBNull.Value;}
     private static void KullaniciAlanlari(SqlCommand c,KullaniciFormModel m){Ekle(c,"@RolAdi",SqlDbType.NVarChar,m.RolAdi,100);Ekle(c,"@AdSoyad",SqlDbType.NVarChar,m.AdSoyad,150);Ekle(c,"@KullaniciAdi",SqlDbType.NVarChar,m.KullaniciAdi,100);Ekle(c,"@Eposta",SqlDbType.NVarChar,m.Eposta,150);}
-    private static void TedarikciRolunuEngelle(KullaniciFormModel model){if(string.Equals(model.RolAdi,"Tedarikçi",StringComparison.OrdinalIgnoreCase))throw new InvalidOperationException("Tedarikçiler kullanıcı hesabı olarak tanımlanamaz.");}
+    private static void KullaniciRolunuDogrula(KullaniciFormModel model){if(!KullaniciRolleri.Contains(model.RolAdi))throw new InvalidOperationException("Seçilen rol sistem kullanıcısı için uygun değildir.");}
 }

@@ -17,6 +17,13 @@ public sealed class GirisController(IGirisService girisService, ILogger<GirisCon
         return View(new GirisViewModel());
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Cikis()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(GirisViewModel model, CancellationToken cancellationToken)

@@ -18,6 +18,7 @@ public sealed class KullaniciYonetimiController(IKullaniciYonetimiService servic
     [HttpPost][ValidateAntiForgeryToken]
     public async Task<IActionResult> Ekle(KullaniciFormModel form, CancellationToken ct)
     {
+        if (TedarikciRoluMu(form.RolAdi)) ModelState.AddModelError(nameof(form.RolAdi), "Tedarikçi rolü sistem kullanıcısına atanamaz.");
         if (string.IsNullOrWhiteSpace(form.GeciciSifre)) ModelState.AddModelError(nameof(form.GeciciSifre), "Geçici şifre zorunludur.");
         if (!ModelState.IsValid) return View("Index", await ModelOlustur(new(), form, "ekle", ct));
         try { await service.EkleAsync(form, ct); TempData["Basari"]="Kullanıcı başarıyla eklendi."; }
@@ -28,6 +29,7 @@ public sealed class KullaniciYonetimiController(IKullaniciYonetimiService servic
     [HttpPost][ValidateAntiForgeryToken]
     public async Task<IActionResult> Guncelle(KullaniciFormModel form, CancellationToken ct)
     {
+        if (TedarikciRoluMu(form.RolAdi)) ModelState.AddModelError(nameof(form.RolAdi), "Tedarikçi rolü sistem kullanıcısına atanamaz.");
         if (!ModelState.IsValid) return View("Index", await ModelOlustur(new(), form, "duzenle", ct));
         try { await service.GuncelleAsync(form, ct); TempData["Basari"]="Kullanıcı bilgileri güncellendi."; }
         catch(Exception ex){ logger.LogError(ex,"Kullanıcı güncellenemedi. ID: {Id}",form.KullaniciId);TempData["Hata"]="Kullanıcı güncellenemedi. Bilgileri kontrol ederek yeniden deneyin."; }
@@ -44,4 +46,6 @@ public sealed class KullaniciYonetimiController(IKullaniciYonetimiService servic
 
     private async Task<KullaniciYonetimiViewModel> ModelOlustur(KullaniciFiltreModel filtre,KullaniciFormModel form,string? panel,CancellationToken ct)=>new()
     { Kullanicilar=await service.ListeleAsync(filtre,ct),Ozet=await service.OzetGetirAsync(ct),Roller=await service.RolleriGetirAsync(ct),Filtre=filtre,Form=form,AcikPanel=panel };
+
+    private static bool TedarikciRoluMu(string? rolAdi)=>string.Equals(rolAdi?.Trim(),"Tedarikçi",StringComparison.OrdinalIgnoreCase);
 }

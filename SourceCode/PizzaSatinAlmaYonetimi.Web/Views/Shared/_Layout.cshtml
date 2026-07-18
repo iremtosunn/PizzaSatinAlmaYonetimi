@@ -1,11 +1,11 @@
-@{
+﻿@{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var links = new[] {
-        ("Dashboard", "Dashboard", "▦"), ("KullaniciYonetimi", "Kullanıcı Yönetimi", "♙"),
-        ("RolYonetimi", "Rol Yönetimi", "♢"), ("TedarikciYonetimi", "Tedarikçi Yönetimi", "▱"),
-        ("SatinAlmaTalepleri", "Satın Alma Talepleri", "▤"), ("TeklifGirisi", "Teklif Girişi", "□"),
-        ("TeklifKarsilastirma", "Teklif Karşılaştırma", "⚖"), ("SatinAlmaOnayi", "Satın Alma Onayı", "✓"),
-        ("Bildirimler", "Bildirimler", "♢"), ("Raporlar", "Raporlar", "▥"), ("Ayarlar", "Ayarlar", "⚙")
+        ("Dashboard", "Dashboard", "â–¦"), ("KullaniciYonetimi", "KullanÄ±cÄ± YÃ¶netimi", "â™™"),
+        ("RolYonetimi", "Rol YÃ¶netimi", "â™¢"), ("TedarikciYonetimi", "TedarikÃ§i YÃ¶netimi", "â–±"),
+        ("SatinAlmaTalepleri", "SatÄ±n Alma Talepleri", "â–¤"), ("TeklifGirisi", "Teklif GiriÅŸi", "â–¡"),
+        ("TeklifKarsilastirma", "Teklif KarÅŸÄ±laÅŸtÄ±rma", "âš–"), ("SatinAlmaOnayi", "SatÄ±n Alma OnayÄ±", "âœ“"),
+        ("Bildirimler", "Bildirimler", "â™¢"), ("Raporlar", "Raporlar", "â–¥"), ("Ayarlar", "Ayarlar", "âš™")
     };
 }
 <!DOCTYPE html>
@@ -13,21 +13,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - Satın Alma</title>
+    <title>@ViewData["Title"] - SatÄ±n Alma</title>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/ui-reference.css" asp-append-version="true" />
 </head>
 <body>
 <aside class="sidebar">
-    <a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark">▣</span><span>Satın Alma</span></a>
-    <nav aria-label="Ana menü">
+    <a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark">â–£</span><span>SatÄ±n Alma</span></a>
+    <nav aria-label="Ana menÃ¼">
         @foreach (var link in links)
         {
             var linkGorunsun =
-                User.IsInRole("Satın Alma Yöneticisi") ||
-                (User.IsInRole("Satın Alma Uzmanı") && new[] { "Dashboard", "TedarikciYonetimi", "SatinAlmaTalepleri", "TeklifGirisi", "TeklifKarsilastirma", "Bildirimler", "Raporlar", "Ayarlar" }.Contains(link.Item1)) ||
-                (User.IsInRole("Talep Oluşturan Kullanıcı") && new[] { "Dashboard", "SatinAlmaTalepleri", "Bildirimler", "Ayarlar" }.Contains(link.Item1)) ||
-                (User.IsInRole("Tedarikçi") && new[] { "Dashboard", "Bildirimler", "Ayarlar" }.Contains(link.Item1));
+                User.IsInRole("SatÄ±n Alma YÃ¶neticisi") ||
+                (User.IsInRole("SatÄ±n Alma UzmanÄ±") && new[] { "Dashboard", "TedarikciYonetimi", "SatinAlmaTalepleri", "TeklifGirisi", "TeklifKarsilastirma", "Bildirimler", "Raporlar", "Ayarlar" }.Contains(link.Item1)) ||
+                (User.IsInRole("Talep OluÅŸturan KullanÄ±cÄ±") && new[] { "Dashboard", "SatinAlmaTalepleri", "Bildirimler", "Ayarlar" }.Contains(link.Item1)) ||
+                (User.IsInRole("TedarikÃ§i") && new[] { "Dashboard", "Bildirimler", "Ayarlar" }.Contains(link.Item1));
             if (linkGorunsun)
             {
                 <a class="nav-link @(controller == link.Item1 ? "active" : "")" asp-controller="@link.Item1" asp-action="Index"><span aria-hidden="true">@link.Item3</span><span>@link.Item2</span></a>
@@ -38,7 +38,7 @@
 <div class="page-shell">
     <header class="topbar">
         <h1>@ViewData["Title"]</h1>
-        <div class="user-area"><span class="avatar" aria-hidden="true">●</span><span><strong>Kullanıcı</strong><small>Satın Alma Yönetimi</small></span></div>
+        <div class="user-area"><span class="avatar" aria-hidden="true">â—</span><span><strong>KullanÄ±cÄ±</strong><small>SatÄ±n Alma YÃ¶netimi</small></span><a asp-controller="Giris" asp-action="Cikis">Ã‡Ä±kÄ±ÅŸ Yap</a></div>
     </header>
     <main class="content">@RenderBody()</main>
 </div>
@@ -46,3 +46,4 @@
 @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
