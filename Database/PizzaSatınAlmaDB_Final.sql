@@ -3859,6 +3859,9 @@ BEGIN
 
         BEGIN TRANSACTION;
 
+        DELETE FROM dbo.TeklifKalemleri
+        WHERE TeklifID = @TeklifID;
+
         DELETE FROM dbo.Teklifler
         WHERE TeklifID = @TeklifID
           AND TeklifDurumID = 0;
