@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 using PizzaSatinAlmaYonetimi.Web.Data;
 using PizzaSatinAlmaYonetimi.Web.Models;
@@ -22,6 +22,9 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
         while (await reader.ReadAsync(cancellationToken)) result.Add(new(
             reader.GetInt32("KullaniciID"), reader.GetString("AdSoyad"), reader.GetString("KullaniciAdi"), reader.GetString("Eposta"), reader.GetString("RolAdi"), reader.GetString("Durum"),
             reader.IsDBNull("SonGirisTarihi") ? null : reader.GetDateTime("SonGirisTarihi"), reader.GetDateTime("KayitTarihi")));
+        result.RemoveAll(x =>
+            string.Equals(x.RolAdi?.Trim(), "Tedarikçi", System.StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(x.RolAdi?.Trim(), "Tedarikci", System.StringComparison.OrdinalIgnoreCase));
         return result;
     }
 
@@ -36,7 +39,7 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
     {
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken);
         await using var command = Komut(connection, "dbo.sp_RolleriListele"); await using var reader = await command.ExecuteReaderAsync(cancellationToken); var result = new List<RolSecenegi>();
-        while (await reader.ReadAsync(cancellationToken)) result.Add(new(reader.GetInt32("RolID"), reader.GetString("RolAdi"))); return result;
+        while (await reader.ReadAsync(cancellationToken)) result.Add(new(reader.GetInt32("RolID"), reader.GetString("RolAdi"))); result.RemoveAll(x => string.Equals(x.RolAdi?.Trim(), "Tedarikçi", System.StringComparison.OrdinalIgnoreCase) || string.Equals(x.RolAdi?.Trim(), "Tedarikci", System.StringComparison.OrdinalIgnoreCase)); return result;
     }
 
     public async Task<KullaniciFormModel?> DetayGetirAsync(int kullaniciId, CancellationToken cancellationToken)
@@ -49,7 +52,7 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
 
     public async Task EkleAsync(KullaniciFormModel model, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(model.GeciciSifre)) throw new InvalidOperationException("Yeni kullanıcı için geçici şifre zorunludur.");
+        if (string.IsNullOrWhiteSpace(model.GeciciSifre)) throw new InvalidOperationException("Yeni kullanÄ±cÄ± iÃ§in geÃ§ici ÅŸifre zorunludur.");
         var (hash, salt) = sifreService.HashOlustur(model.GeciciSifre);
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken); await using var command = Komut(connection, "dbo.sp_KullaniciEkle");
         KullaniciAlanlari(command, model); Ekle(command,"@SifreHash",SqlDbType.VarBinary,hash); Ekle(command,"@SifreSalt",SqlDbType.VarBinary,salt); await command.ExecuteNonQueryAsync(cancellationToken);
@@ -57,7 +60,7 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
 
     public async Task GuncelleAsync(KullaniciFormModel model, CancellationToken cancellationToken)
     {
-        if (!model.KullaniciId.HasValue) throw new InvalidOperationException("Kullanıcı ID zorunludur.");
+        if (!model.KullaniciId.HasValue) throw new InvalidOperationException("KullanÄ±cÄ± ID zorunludur.");
         await using var connection = connectionFactory.CreateConnection(); await connection.OpenAsync(cancellationToken); await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         try {
             await using (var command = Komut(connection,"dbo.sp_KullaniciGuncelle",(SqlTransaction)transaction)) { Ekle(command,"@KullaniciID",SqlDbType.Int,model.KullaniciId); KullaniciAlanlari(command,model); await command.ExecuteNonQueryAsync(cancellationToken); }
@@ -75,3 +78,4 @@ public sealed class KullaniciYonetimiService(ISqlConnectionFactory connectionFac
     private static void Ekle(SqlCommand c,string ad,SqlDbType tip,object? deger,int? boyut=null){var p=boyut.HasValue?c.Parameters.Add(ad,tip,boyut.Value):c.Parameters.Add(ad,tip);p.Value=deger??DBNull.Value;}
     private static void KullaniciAlanlari(SqlCommand c,KullaniciFormModel m){Ekle(c,"@RolAdi",SqlDbType.NVarChar,m.RolAdi,100);Ekle(c,"@AdSoyad",SqlDbType.NVarChar,m.AdSoyad,150);Ekle(c,"@KullaniciAdi",SqlDbType.NVarChar,m.KullaniciAdi,100);Ekle(c,"@Eposta",SqlDbType.NVarChar,m.Eposta,150);}
 }
+

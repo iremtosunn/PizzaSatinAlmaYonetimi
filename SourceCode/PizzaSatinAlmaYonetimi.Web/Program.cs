@@ -1,4 +1,4 @@
-using PizzaSatinAlmaYonetimi.Web.Data;
+﻿using PizzaSatinAlmaYonetimi.Web.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PizzaSatinAlmaYonetimi.Web.Services;
 
@@ -52,6 +52,7 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Giris}/{action=Index}/{id?}");
 
 app.Run();
+

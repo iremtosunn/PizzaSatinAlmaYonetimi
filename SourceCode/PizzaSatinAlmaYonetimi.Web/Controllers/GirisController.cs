@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -12,9 +12,17 @@ namespace PizzaSatinAlmaYonetimi.Web.Controllers;
 public sealed class GirisController(IGirisService girisService, ILogger<GirisController> logger) : Controller
 {
     [HttpGet]
-    public IActionResult Index() => User.Identity?.IsAuthenticated == true
-        ? RedirectToAction("Index", "Dashboard")
-        : View(new GirisViewModel());
+public async Task<IActionResult> Cikis()
+{
+    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+    return RedirectToAction("Index", "Giris");
+}
+    [HttpGet]
+    public IActionResult Index()
+    {
+        return View(new GirisViewModel());
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -28,7 +36,7 @@ public sealed class GirisController(IGirisService girisService, ILogger<GirisCon
             var kullanici = await girisService.DogrulaAsync(model.KullaniciAdi, model.Sifre, cancellationToken);
             if (kullanici is null)
             {
-                ModelState.AddModelError(string.Empty, "Kullanıcı adı veya şifre hatalı.");
+                ModelState.AddModelError(string.Empty, "KullanÄ±cÄ± adÄ± veya ÅŸifre hatalÄ±.");
                 return View(model);
             }
 
@@ -45,9 +53,11 @@ public sealed class GirisController(IGirisService girisService, ILogger<GirisCon
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Giriş işlemi sırasında hata oluştu.");
-            ModelState.AddModelError(string.Empty, "Giriş işlemi şu anda tamamlanamıyor. Lütfen daha sonra yeniden deneyin.");
+            logger.LogError(exception, "GiriÅŸ iÅŸlemi sÄ±rasÄ±nda hata oluÅŸtu.");
+            ModelState.AddModelError(string.Empty, "GiriÅŸ iÅŸlemi ÅŸu anda tamamlanamÄ±yor. LÃ¼tfen daha sonra yeniden deneyin.");
             return View(model);
         }
     }
 }
+
+

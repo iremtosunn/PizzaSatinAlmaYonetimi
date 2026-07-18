@@ -1,12 +1,58 @@
 @{
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
-    var links = new[] {
-        ("Dashboard", "Dashboard", "▦"), ("KullaniciYonetimi", "Kullanıcı Yönetimi", "♙"),
-        ("RolYonetimi", "Rol Yönetimi", "♢"), ("TedarikciYonetimi", "Tedarikçi Yönetimi", "▱"),
-        ("SatinAlmaTalepleri", "Satın Alma Talepleri", "▤"), ("TeklifGirisi", "Teklif Girişi", "□"),
-        ("TeklifKarsilastirma", "Teklif Karşılaştırma", "⚖"), ("SatinAlmaOnayi", "Satın Alma Onayı", "✓"),
-        ("Bildirimler", "Bildirimler", "♢"), ("Raporlar", "Raporlar", "▥"), ("Ayarlar", "Ayarlar", "⚙")
-    };
+
+    var isYonetici = User.IsInRole("Satın Alma Yöneticisi");
+    var isUzman = User.IsInRole("Satın Alma Uzmanı");
+    var isTalepOlusturan = User.IsInRole("Talep Oluşturan Kullanıcı");
+
+    var links = new List<(string Controller, string Text, string Icon)>();
+
+    if (isYonetici || isUzman || isTalepOlusturan)
+    {
+        links.Add(("Dashboard", "Dashboard", "▦"));
+    }
+
+    if (isYonetici)
+    {
+        links.Add(("KullaniciYonetimi", "Kullanıcı Yönetimi", "♙"));
+        links.Add(("RolYonetimi", "Rol Yönetimi", "♢"));
+    }
+
+    if (isYonetici || isUzman)
+    {
+        links.Add(("TedarikciYonetimi", "Tedarikçi Yönetimi", "▱"));
+    }
+
+    if (isYonetici || isUzman || isTalepOlusturan)
+    {
+        links.Add(("SatinAlmaTalepleri", "Satın Alma Talepleri", "▤"));
+    }
+
+    if (isYonetici || isUzman)
+    {
+        links.Add(("TeklifGirisi", "Teklif Girişi", "▣"));
+        links.Add(("TeklifKarsilastirma", "Teklif Karşılaştırma", "⚖"));
+    }
+
+    if (isYonetici)
+    {
+        links.Add(("SatinAlmaOnayi", "Satın Alma Onayı", "✓"));
+    }
+
+    if (isYonetici || isUzman || isTalepOlusturan)
+    {
+        links.Add(("Bildirimler", "Bildirimler", "♢"));
+    }
+
+    if (isYonetici || isUzman)
+    {
+        links.Add(("Raporlar", "Raporlar", "▥"));
+    }
+
+    if (isYonetici || isUzman || isTalepOlusturan)
+    {
+        links.Add(("Ayarlar", "Ayarlar", "⚙"));
+    }
 }
 <!DOCTYPE html>
 <html lang="tr">
