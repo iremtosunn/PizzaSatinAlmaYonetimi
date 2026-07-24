@@ -20,7 +20,7 @@ public sealed class GirisService(
             return null;
 
         await SonGirisTarihiniGuncelleAsync(connection, kullanici.KullaniciId, cancellationToken);
-        return new OturumKullanicisi(kullanici.KullaniciId, kullanici.AdSoyad, kullanici.RolAdi);
+        return new OturumKullanicisi(kullanici.KullaniciId, kullanici.RolId, kullanici.AdSoyad, kullanici.RolAdi);
     }
 
     private static async Task<GirisKullanicisi?> KullaniciGetirAsync(SqlConnection connection, string kullaniciAdi, CancellationToken cancellationToken)

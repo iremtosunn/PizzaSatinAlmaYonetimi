@@ -1,1 +1,3 @@
-using PizzaSatinAlmaYonetimi.Web.Models;namespace PizzaSatinAlmaYonetimi.Web.Services;public interface IBildirimService{Task<BildirimViewModel>GetirAsync(int uid,CancellationToken ct);Task OkunduYapAsync(int bildirimId,int uid,CancellationToken ct);Task TumunuOkunduYapAsync(int uid,CancellationToken ct);}
+using PizzaSatinAlmaYonetimi.Web.Models;
+namespace PizzaSatinAlmaYonetimi.Web.Services;
+public interface IBildirimService{Task<BildirimViewModel>GetirAsync(int uid,CancellationToken ct);Task TeklifGecerlilikUyarilariniOlusturAsync(CancellationToken ct);Task OkunduYapAsync(int bildirimId,int uid,CancellationToken ct);Task OkunmadiYapAsync(int bildirimId,int uid,CancellationToken ct);Task TumunuOkunduYapAsync(int uid,CancellationToken ct);Task TumunuOkunmadiYapAsync(int uid,CancellationToken ct);}

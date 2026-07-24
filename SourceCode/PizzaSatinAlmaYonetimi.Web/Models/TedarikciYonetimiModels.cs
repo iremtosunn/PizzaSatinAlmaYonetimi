@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 namespace PizzaSatinAlmaYonetimi.Web.Models;
-public sealed record TedarikciListeSatiri(int TedarikciId,string FirmaAdi,string VergiNo,string? Telefon,string? Eposta,string? Adres,string Durum,DateTime KayitTarihi);
+public sealed record TedarikciListeSatiri(int TedarikciId,string FirmaAdi,string VergiNo,string? Telefon,string? Eposta,string? Adres,string Durum,DateTime KayitTarihi,decimal? Puan=null,int TamamlananTeslimat=0);
 public sealed class TedarikciFiltreModel{public string? AramaMetni{get;set;}public int? Durum{get;set;}[DataType(DataType.Date)]public DateTime? BaslangicTarihi{get;set;}[DataType(DataType.Date)]public DateTime? BitisTarihi{get;set;}}
 public sealed class TedarikciFormModel
 {

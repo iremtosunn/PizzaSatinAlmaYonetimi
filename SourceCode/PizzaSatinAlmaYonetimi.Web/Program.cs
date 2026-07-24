@@ -13,11 +13,15 @@ builder.Services.AddScoped<IGirisService, GirisService>();
 builder.Services.AddScoped<IKullaniciYonetimiService, KullaniciYonetimiService>();
 builder.Services.AddScoped<IRolYonetimiService, RolYonetimiService>();
 builder.Services.AddScoped<ITedarikciYonetimiService, TedarikciYonetimiService>();
+builder.Services.AddScoped<ITedarikciPuanService, TedarikciPuanService>();
 builder.Services.AddScoped<ISatinAlmaTalebiService, SatinAlmaTalebiService>();
 builder.Services.AddScoped<ITeklifGirisiService, TeklifGirisiService>();
 builder.Services.AddScoped<ITeklifKarsilastirmaService, TeklifKarsilastirmaService>();
 builder.Services.AddScoped<ISatinAlmaOnayService, SatinAlmaOnayService>();
+builder.Services.AddScoped<ITeslimatTakibiService, TeslimatTakibiService>();
 builder.Services.AddScoped<IBildirimService, BildirimService>();
+builder.Services.AddScoped<IOperasyonBildirimService, OperasyonBildirimService>();
+builder.Services.AddHostedService<TeklifBildirimWorker>();
 builder.Services.AddScoped<IAyarlarService, AyarlarService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IRaporlarService, RaporlarService>();
@@ -30,7 +34,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.Name = "PizzaSatinAlma.Oturum";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });

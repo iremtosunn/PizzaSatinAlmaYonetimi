@@ -20,7 +20,17 @@ public sealed class RaporlarViewModel
     public IReadOnlyList<IReadOnlyList<string>> Satirlar { get; set; } = Array.Empty<IReadOnlyList<string>>();
 
     public string? HataMesaji { get; set; }
+    public RaporKpi Kpi { get; set; } = new();
+    public IReadOnlyList<RaporGrafikNoktasi> AylikHarcama { get; set; } = Array.Empty<RaporGrafikNoktasi>();
+    public IReadOnlyList<RaporGrafikNoktasi> TalepDurumDagilimi { get; set; } = Array.Empty<RaporGrafikNoktasi>();
+    public IReadOnlyList<RaporTedarikciOzeti> EnYuksekHarcamaTedarikcileri { get; set; } = Array.Empty<RaporTedarikciOzeti>();
+    public RaporTeslimatOzeti Teslimat { get; set; } = new();
 }
+
+public sealed class RaporKpi{public int ToplamTalep{get;set;}public int ToplamTeklif{get;set;}public int ToplamSiparis{get;set;}public int AktifTedarikci{get;set;}public decimal ToplamHarcama{get;set;}public int OncelikliTalep{get;set;}}
+public sealed record RaporGrafikNoktasi(string Etiket,decimal Deger);
+public sealed record RaporTedarikciOzeti(string FirmaAdi,int SiparisSayisi,decimal ToplamTutar);
+public sealed class RaporTeslimatOzeti{public int Tamamlanan{get;set;}public int Geciken{get;set;}public decimal ZamanindaOrani{get;set;}public decimal KusurOrani{get;set;}}
 
 public sealed record RaporSecenegi(string Deger, string Metin);
 

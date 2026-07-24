@@ -1,86 +1,23 @@
 @{
-    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
-
-    var isYonetici = User.IsInRole("Satın Alma Yöneticisi");
-    var isUzman = User.IsInRole("Satın Alma Uzmanı");
-    var isTalepOlusturan = User.IsInRole("Talep Oluşturan Kullanıcı");
-
-    var links = new List<(string Controller, string Text, string Icon)>();
-
-    if (isYonetici || isUzman || isTalepOlusturan)
-    {
-        links.Add(("Dashboard", "Dashboard", "▦"));
-    }
-
-    if (isYonetici)
-    {
-        links.Add(("KullaniciYonetimi", "Kullanıcı Yönetimi", "♙"));
-        links.Add(("RolYonetimi", "Rol Yönetimi", "♢"));
-    }
-
-    if (isYonetici || isUzman)
-    {
-        links.Add(("TedarikciYonetimi", "Tedarikçi Yönetimi", "▱"));
-    }
-
-    if (isYonetici || isUzman || isTalepOlusturan)
-    {
-        links.Add(("SatinAlmaTalepleri", "Satın Alma Talepleri", "▤"));
-    }
-
-    if (isYonetici || isUzman)
-    {
-        links.Add(("TeklifGirisi", "Teklif Girişi", "▣"));
-        links.Add(("TeklifKarsilastirma", "Teklif Karşılaştırma", "⚖"));
-    }
-
-    if (isYonetici)
-    {
-        links.Add(("SatinAlmaOnayi", "Satın Alma Onayı", "✓"));
-    }
-
-    if (isYonetici || isUzman || isTalepOlusturan)
-    {
-        links.Add(("Bildirimler", "Bildirimler", "♢"));
-    }
-
-    if (isYonetici || isUzman)
-    {
-        links.Add(("Raporlar", "Raporlar", "▥"));
-    }
-
-    if (isYonetici || isUzman || isTalepOlusturan)
-    {
-        links.Add(("Ayarlar", "Ayarlar", "⚙"));
-    }
+    var controller=ViewContext.RouteData.Values["controller"]?.ToString();
+    var isYonetici=User.IsInRole("Satın Alma Yöneticisi");
+    var isUzman=User.IsInRole("Satın Alma Uzmanı");
+    var isTalepOlusturan=User.IsInRole("Talep Oluşturan Kullanıcı");
+    var links=new List<(string Controller,string Text,string Icon)>();
+    if(isYonetici||isUzman||isTalepOlusturan)links.Add(("Dashboard","Dashboard","layout-dashboard"));
+    if(isYonetici){links.Add(("KullaniciYonetimi","Kullanıcı Yönetimi","users"));links.Add(("RolYonetimi","Rol Yönetimi","shield-check"));}
+    if(isYonetici||isUzman)links.Add(("TedarikciYonetimi","Tedarikçi Yönetimi","truck"));
+    if(isYonetici||isUzman||isTalepOlusturan)links.Add(("SatinAlmaTalepleri","Satın Alma Talepleri","clipboard-list"));
+    if(isYonetici||isUzman){links.Add(("TeklifGirisi","Teklif Girişi","file-pen-line"));links.Add(("TeklifKarsilastirma","Teklif Karşılaştırma","scale"));}
+    if(isYonetici)links.Add(("SatinAlmaOnayi","Satın Alma Onayı","circle-check"));
+    if(isYonetici||isUzman)links.Add(("TeslimatTakibi","Teslimat Takibi","package-check"));
+    if(isYonetici||isUzman||isTalepOlusturan)links.Add(("Bildirimler","Bildirimler","bell"));
+    if(isYonetici||isUzman)links.Add(("Raporlar","Raporlar","chart-no-axes-column"));
+    if(isYonetici||isUzman||isTalepOlusturan)links.Add(("Ayarlar","Ayarlar","settings"));
 }
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"] - Satın Alma</title>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/ui-reference.css" asp-append-version="true" />
-</head>
-<body>
-<aside class="sidebar">
-    <a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark">▣</span><span>Satın Alma</span></a>
-    <nav aria-label="Ana menü">
-        @foreach (var link in links)
-        {
-            <a class="nav-link @(controller == link.Item1 ? "active" : "")" asp-controller="@link.Item1" asp-action="Index"><span aria-hidden="true">@link.Item3</span><span>@link.Item2</span></a>
-        }
-    </nav>
-</aside>
-<div class="page-shell">
-    <header class="topbar">
-        <h1>@ViewData["Title"]</h1>
-        <div class="user-area"><span class="avatar" aria-hidden="true">●</span><span><strong>Kullanıcı</strong><small>Satın Alma Yönetimi</small></span></div>
-    </header>
-    <main class="content">@RenderBody()</main>
-</div>
-<script src="~/js/site.js" asp-append-version="true"></script>
-@await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
+<html lang="tr"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>@ViewData["Title"] - Satın Alma</title><link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/ui-reference.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/menu-icons.css" asp-append-version="true"/><link rel="stylesheet" href="~/css/avatar-icon.css" asp-append-version="true"/></head>
+<body><aside class="sidebar"><a class="brand" asp-controller="Dashboard" asp-action="Index"><span class="brand-mark"><svg aria-hidden="true"><use href="/icons/menu-icons.svg#package-check"></use></svg></span><span>Satın Alma</span></a><nav aria-label="Ana menü">
+@foreach(var link in links){<a class="nav-link @(controller==link.Controller?"active":"")" asp-controller="@link.Controller" asp-action="Index"><svg class="menu-icon" aria-hidden="true"><use href="/icons/menu-icons.svg#@link.Icon"></use></svg><span>@link.Text</span></a>}
+<a class="nav-link nav-cikis" asp-controller="Giris" asp-action="Cikis"><svg class="menu-icon" aria-hidden="true"><use href="/icons/menu-icons.svg#log-out"></use></svg><span>Çıkış Yap</span></a>
+</nav></aside><div class="page-shell"><header class="topbar"><h1>@ViewData["Title"]</h1><div class="user-area"><span class="avatar" aria-hidden="true"><svg><use href="/icons/menu-icons.svg#user"></use></svg></span><span><strong>Kullanıcı</strong><small>Satın Alma Yönetimi</small></span></div></header><main class="content">@RenderBody()</main></div><script src="~/js/site.js" asp-append-version="true"></script>@await RenderSectionAsync("Scripts",required:false)</body></html>

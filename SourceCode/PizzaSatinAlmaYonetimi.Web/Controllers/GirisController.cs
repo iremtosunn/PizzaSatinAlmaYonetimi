@@ -44,6 +44,7 @@ public async Task<IActionResult> Cikis()
             {
                 new Claim(ClaimTypes.NameIdentifier, kullanici.KullaniciId.ToString()),
                 new Claim(ClaimTypes.Name, kullanici.AdSoyad),
+                new Claim("rol_id", kullanici.RolId.ToString()),
                 new Claim(ClaimTypes.Role, kullanici.RolAdi)
             };
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));

@@ -1,63 +1,13 @@
 @model RaporlarViewModel
-@{
-    ViewData["Title"] = "Raporlar";
-}
-<link rel="stylesheet" href="~/css/raporlar.css" asp-append-version="true" />
-
-@if (TempData["Hata"] is string hata)
-{
-    <div class="report-alert" role="alert">@hata</div>
-}
-@if (Model.HataMesaji is not null)
-{
-    <div class="report-alert" role="alert">@Model.HataMesaji</div>
-}
-
-<section class="report-filter-card" aria-label="Rapor filtreleri">
-    <form method="get" asp-action="Index" class="report-filter-form">
-        <label>
-            <span>Rapor Türü</span>
-            <select name="raporTuru" aria-label="Rapor türü">
-                @foreach (var option in Model.RaporTurleri)
-                {
-                    if (option.Deger == Model.RaporTuru)
-                    {
-                        <option value="@option.Deger" selected>@option.Metin</option>
-                    }
-                    else
-                    {
-                        <option value="@option.Deger">@option.Metin</option>
-                    }
-                }
-            </select>
-        </label>
-        <button type="submit" class="report-primary">Raporu Getir</button>
-        <a class="report-export" asp-action="Csv" asp-route-raporTuru="@Model.RaporTuru"><span aria-hidden="true">⇩</span> Dışa Aktar</a>
-    </form>
+@{ViewData["Title"]="Yönetim Raporları";var maxHarcama=Model.AylikHarcama.Count==0?1:Model.AylikHarcama.Max(x=>x.Deger);var toplamDurum=Model.TalepDurumDagilimi.Sum(x=>x.Deger);var maxFirma=Model.EnYuksekHarcamaTedarikcileri.Count==0?1:Model.EnYuksekHarcamaTedarikcileri.Max(x=>x.ToplamTutar);}
+<link rel="stylesheet" href="~/css/raporlar.css" asp-append-version="true"/>
+@if(TempData["Hata"] is string hata){<div class="report-alert">@hata</div>}@if(Model.HataMesaji is not null){<div class="report-alert">@Model.HataMesaji</div>}
+<section class="rapor-kpilar"><article><small>Toplam Harcama</small><strong>@Model.Kpi.ToplamHarcama.ToString("N2") ₺</strong><span>@Model.Kpi.ToplamSiparis sipariş</span></article><article><small>Satın Alma Talepleri</small><strong>@Model.Kpi.ToplamTalep</strong><span>@Model.Kpi.OncelikliTalep öncelikli</span></article><article><small>Toplam Teklif</small><strong>@Model.Kpi.ToplamTeklif</strong><span>Teklif havuzu</span></article><article><small>Aktif Tedarikçi</small><strong>@Model.Kpi.AktifTedarikci</strong><span>Çalışılabilir firma</span></article></section>
+<section class="rapor-izgara">
+ <article class="rapor-kart genis"><header><div><h2>Aylık Satın Alma Harcaması</h2><p>Siparişe dönüşen tekliflerin aylık toplamı</p></div></header><div class="dikey-grafik">@foreach(var x in Model.AylikHarcama){var oran=maxHarcama==0?0:x.Deger/maxHarcama*100;<div class="dikey-kolon"><span class="deger">@x.Deger.ToString("N0") ₺</span><div style="height:@oran.ToString("0",System.Globalization.CultureInfo.InvariantCulture)%"></div><small>@x.Etiket</small></div>}@if(Model.AylikHarcama.Count==0){<p>Harcama verisi bulunmuyor.</p>}</div></article>
+ <article class="rapor-kart"><header><div><h2>Talep Durumları</h2><p>Süreçteki taleplerin dağılımı</p></div></header><div class="yatay-grafik">@foreach(var x in Model.TalepDurumDagilimi){var oran=toplamDurum==0?0:x.Deger/toplamDurum*100;<div><span>@x.Etiket <b>@x.Deger</b></span><i><em style="width:@oran.ToString("0",System.Globalization.CultureInfo.InvariantCulture)%"></em></i></div>}</div></article>
+ <article class="rapor-kart"><header><div><h2>Teslimat Performansı</h2><p>Operasyonel kalite göstergeleri</p></div></header><div class="teslimat-metrikleri"><div><strong>%@Model.Teslimat.ZamanindaOrani.ToString("N1")</strong><span>Zamanında teslim</span></div><div><strong>%@Model.Teslimat.KusurOrani.ToString("N1")</strong><span>Kusur oranı</span></div><div><strong>@Model.Teslimat.Tamamlanan</strong><span>Tamamlanan</span></div><div class="risk"><strong>@Model.Teslimat.Geciken</strong><span>Geciken</span></div></div></article>
+ <article class="rapor-kart genis"><header><div><h2>En Yüksek Harcama Yapılan Tedarikçiler</h2><p>Tedarikçi yoğunlaşması ve sipariş hacmi</p></div></header><div class="firma-listesi">@foreach(var f in Model.EnYuksekHarcamaTedarikcileri){var oran=maxFirma==0?0:f.ToplamTutar/maxFirma*100;<div><span><b>@f.FirmaAdi</b><small>@f.SiparisSayisi sipariş</small></span><i><em style="width:@oran.ToString("0",System.Globalization.CultureInfo.InvariantCulture)%"></em></i><strong>@f.ToplamTutar.ToString("N2") ₺</strong></div>}</div></article>
 </section>
-
-<section class="report-panel">
-    <div class="report-heading">
-        <h2>Rapor Sonuçları</h2>
-        <span>@Model.RaporTurleri.FirstOrDefault(x => x.Deger == Model.RaporTuru)?.Metin</span>
-    </div>
-
-    @if (Model.HataMesaji is null && Model.Satirlar.Count == 0)
-    {
-        <p class="report-empty">Seçilen rapor için gösterilecek veri bulunmuyor.</p>
-    }
-    else if (Model.HataMesaji is null)
-    {
-        <div class="report-table-wrap">
-            <table class="report-table">
-                <thead><tr>@foreach (var column in Model.Sutunlar) { <th>@column</th> }</tr></thead>
-                <tbody>
-                    @foreach (var row in Model.Satirlar)
-                    {
-                        <tr>@foreach (var cell in row) { <td>@cell</td> }</tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-</section>
+<section class="report-filter-card"><form method="get" asp-action="Index" class="report-filter-form"><label><span>Ayrıntılı Rapor</span><select name="raporTuru">@foreach(var o in Model.RaporTurleri){<option value="@o.Deger" selected="@(o.Deger==Model.RaporTuru)">@o.Metin</option>}</select></label><button class="report-primary">Raporu Getir</button><a class="report-export" asp-action="Csv" asp-route-raporTuru="@Model.RaporTuru">CSV Dışa Aktar</a></form></section>
+<section class="report-panel"><div class="report-heading"><h2>Ayrıntılı Rapor Sonuçları</h2><span>@Model.RaporTurleri.FirstOrDefault(x=>x.Deger==Model.RaporTuru)?.Metin</span></div>@if(Model.HataMesaji is null&&Model.Satirlar.Count>0){<div class="report-table-wrap"><table class="report-table"><thead><tr>@foreach(var c in Model.Sutunlar){<th>@c</th>}</tr></thead><tbody>@foreach(var r in Model.Satirlar){<tr>@foreach(var h in r){<td>@h</td>}</tr>}</tbody></table></div>}else{<p class="report-empty">Seçilen rapor için veri bulunmuyor.</p>}</section>

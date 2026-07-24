@@ -5,7 +5,7 @@ using PizzaSatinAlmaYonetimi.Web.Models;
 
 namespace PizzaSatinAlmaYonetimi.Web.Services;
 
-public sealed class TeklifKarsilastirmaService(ISqlConnectionFactory factory) : ITeklifKarsilastirmaService
+public sealed class TeklifKarsilastirmaService(ISqlConnectionFactory factory,ITedarikciPuanService puanService) : ITeklifKarsilastirmaService
 {
     public async Task<IReadOnlyList<KarsilastirmaTeklifi>> ListeleAsync(string no, CancellationToken ct)
     {
@@ -41,7 +41,8 @@ public sealed class TeklifKarsilastirmaService(ISqlConnectionFactory factory) : 
             ));
         }
 
-        return liste;
+        var puanlar=(await puanService.GetirAsync(ct)).GroupBy(x=>x.FirmaAdi).ToDictionary(x=>x.Key,x=>x.First(),StringComparer.CurrentCultureIgnoreCase);
+        return liste.Select(x=>puanlar.TryGetValue(x.FirmaAdi,out var p)?x with{TedarikciPuani=p.Puan,TamamlananTeslimat=p.TamamlananTeslimat}:x).ToList();
     }
 
     public Task SecAsync(string no, CancellationToken ct)

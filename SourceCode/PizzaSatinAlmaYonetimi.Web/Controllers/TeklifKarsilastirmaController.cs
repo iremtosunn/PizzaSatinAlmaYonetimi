@@ -29,6 +29,7 @@ public sealed class TeklifKarsilastirmaController(
         {
             TalepNo = talepNo,
             Talep = talep,
+            Talepler = await talepService.ListeleAsync(null, ct),
             Teklifler = teklifler
         });
     }

@@ -10,4 +10,4 @@ public sealed record GirisKullanicisi(
     byte[] SifreSalt,
     int Durum);
 
-public sealed record OturumKullanicisi(int KullaniciId, string AdSoyad, string RolAdi);
+public sealed record OturumKullanicisi(int KullaniciId, int RolId, string AdSoyad, string RolAdi);
